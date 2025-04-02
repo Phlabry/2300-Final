@@ -1,0 +1,1 @@
+// player with all their attributes: money, deck, etc.

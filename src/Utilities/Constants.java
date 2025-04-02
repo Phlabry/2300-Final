@@ -1,0 +1,1 @@
+// constant variables, might delete
