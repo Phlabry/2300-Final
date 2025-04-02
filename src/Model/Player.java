@@ -1,6 +1,7 @@
 // player with all their attributes: money, deck, etc.
 package Model;
 import java.util.*;
+import Mechanics.HandEvaluator;
 
 public class Player
 {
@@ -41,6 +42,11 @@ public class Player
 	public void setMoney(int money) {
 		this.money = money;
 	}
+	
+
+    public String evaluateHand() {
+        return HandEvaluator.evaluateHand(playerHand);
+    }
 	
 	public String toString() {
 		return name + "has $" + money + "and hand: " + playerHand;

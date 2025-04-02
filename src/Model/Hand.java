@@ -22,6 +22,8 @@ public class Hand
 		hand.sort(Comparator.comparing(Card::getRank));
 	}
 	
+	
+	
 	public String toString() {
 		return hand.toString();
 	}
