@@ -6,7 +6,7 @@ import java.util.*;
 public class HandEvaluator {
 
     public static String evaluateHand(List<Card> hand) {
-        if (hand.size() != 5) return "Invalid hand size";
+        if (hand.size() != 2) return "Invalid hand size";
 
         hand.sort(Comparator.comparing(Card::getRank));
 

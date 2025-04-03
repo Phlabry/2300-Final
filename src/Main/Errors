@@ -4,7 +4,6 @@ Does not reset highest bid each round
 Dont end the game instantly after everyone takes a turn.
 All in doesn’t update highest bet
 Game doesn’t end properly. Does not correctly determine the winner: invalid hand size
-Player names can not include empty space (needs to be one word)
 
 
 Notes
