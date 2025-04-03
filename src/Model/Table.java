@@ -1,7 +1,12 @@
 package Model;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Table {
     private PlayerNode firstPlayer;
     private PlayerNode currentPlayer;
+    private int playerAmount;
 
     public void addPlayer(Player player) {
         PlayerNode newNode = new PlayerNode(player);
@@ -17,6 +22,8 @@ public class Table {
             temp.setNext(newNode);
             newNode.setNext(firstPlayer); 
         }
+        
+        playerAmount++;
     }
 
     public void nextTurn() {
@@ -26,6 +33,10 @@ public class Table {
     public Player getCurrentPlayer() {
         return currentPlayer.getPlayer();
     }
+    
+    public Player getFirstPlayer() {
+        return firstPlayer.getPlayer();
+    }
 
     public void displayPlayers() {
         PlayerNode temp = firstPlayer;
@@ -33,5 +44,21 @@ public class Table {
             System.out.println(temp.getPlayer().getName());
             temp = temp.getNext();
         } while (temp != firstPlayer);
+    }
+    
+    public List<Player> getPlayers() {
+        List<Player> playerList = new ArrayList<>();
+        PlayerNode temp = firstPlayer;
+        if (temp != null) {
+            do {
+                playerList.add(temp.getPlayer());
+                temp = temp.getNext();
+            } while (temp != firstPlayer);
+        }
+        return playerList;
+    }
+    
+    public int getPlayerAmount() {
+    	return this.playerAmount;
     }
 }

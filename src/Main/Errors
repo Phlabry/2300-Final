@@ -1,0 +1,7 @@
+Known Errors
+
+Don’t end turn if cant check
+Name string doesn’t like spaces
+All in doesn’t update highest bet
+Game doesn’t end properly: invalid hand size
+Folding

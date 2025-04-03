@@ -7,14 +7,12 @@ public class Betting
     private int pot;
     private int highestBet;
     private List<Player> players;
-    private int activePlayers;
     private Scanner scanner;
 
     public Betting(List<Player> players, Scanner scanner) {
         this.players = players;
         this.pot = 0;
         this.highestBet = 0;
-        this.activePlayers = players.size();
         this.scanner = scanner;
     }
 

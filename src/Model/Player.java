@@ -2,7 +2,6 @@
 package Model;
 import java.util.*;
 import Mechanics.HandEvaluator;
-import Mechanics.Betting;
 import Mechanics.Betting.BettingAction;
 
 public class Player
