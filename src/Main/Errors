@@ -1,7 +1,12 @@
 Known Errors
 
-Don’t end turn if cant check
-Name string doesn’t like spaces
+Does not reset highest bid each round.
+Dont end the game instantly after everyone takes a turn.
 All in doesn’t update highest bet
-Game doesn’t end properly: invalid hand size
-Folding
+Game doesn’t end properly. Does not correctly determine the winner: invalid hand size
+Player names can not include empty space (needs to be one word)
+
+
+Notes
+
+Missing small and big blind system (we can simplify the game by making a default bid amount at the start with 50$, but we have enough time to implement the real system)
