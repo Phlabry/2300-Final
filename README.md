@@ -54,8 +54,8 @@ This structure is designed to separate different parts of the game logic and int
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/poker-game-java.git
-   cd poker-game-java
+   https://github.com/Phlabry/2300-Final.git
+   cd 2300-Final
    
 ---
 
