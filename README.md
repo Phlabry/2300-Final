@@ -9,17 +9,30 @@ This project currently runs in the terminal but **will be expanded into a full g
 ---
 
 ## 📁 Project Structure
-PokerGame/
-├── Main.java                 # Driver file to run the game
-├── Model/
-│   ├── Card.java            # Represents a playing card
-│   ├── Deck.java            # Represents a deck of 52 cards
-│   ├── Player.java          # Represents a player with money, hand, and actions
-├── Mechanics/
-│   ├── PokerGame.java       # Core game logic (dealer, betting rounds, hand resolution)
-│   ├── HandEvaluator.java   # Evaluates poker hands and determines the winner
-│   └── Betting/
-│       ├── BettingAction.java  # Enum for actions: FOLD, CHECK, CALL, RAISE, ALL_IN
+
+The project is organized into a few key directories and files. Here's an overview:
+
+### Main Files
+- **Main.java**: The driver file that runs the game.
+
+### Model (Game Entities)
+This folder contains the core classes representing the game elements:
+- **Card.java**: Defines a single playing card (rank and suit).
+- **Deck.java**: Represents a deck of 52 cards and handles card dealing.
+- **Player.java**: Represents a player with a hand of cards, money, and actions (folding, betting, etc.).
+
+### Mechanics (Game Logic)
+This folder contains the core logic of the poker game:
+- **PokerGame.java**: Handles the core game mechanics, including the dealer, betting rounds, and hand resolution.
+- **HandEvaluator.java**: Contains the logic to evaluate poker hands (Royal Flush, Straight, Full House, etc.).
+  
+### Betting
+A subfolder within **Mechanics** that deals with betting actions:
+- **BettingAction.java**: Enum representing the possible actions a player can take during betting: FOLD, CHECK, CALL, RAISE, ALL_IN.
+
+---
+
+This structure is designed to separate different parts of the game logic, making the code easier to understand and maintain.
 
 ---
 
