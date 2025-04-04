@@ -106,6 +106,7 @@ public class Player
             case ALL_IN:
                 System.out.println(name + " goes all-in with $" + money);
                 money = 0;
+                	
                 return true;
 
             default:
