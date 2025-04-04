@@ -2,7 +2,7 @@
 
 # Poker Game (Java)
 
-A basic implementation of Poker written in Java. Built as a final project for an Object-Oriented Programming course, this project demonstrates principles such as inheritance, encapsulation, abstraction, and polymorphism, while modeling real-world poker game mechanics including dealing, betting, hand evaluation, and game flow.
+A basic implementation of Poker written in Java. Built as a final project for an Object-Oriented Software Design course, this project demonstrates principles such as inheritance, encapsulation, abstraction, and polymorphism, while modeling real-world poker game mechanics including dealing, betting, hand evaluation, and game flow.
 
 This project currently runs in the terminal but **will be expanded into a full graphical user interface (GUI)** version in the near future.
 
