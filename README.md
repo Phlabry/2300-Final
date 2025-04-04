@@ -10,29 +10,33 @@ This project currently runs in the terminal but **will be expanded into a full g
 
 ## 📁 Project Structure
 
-The project is organized into a few key directories and files. Here's an overview:
+The project is organized into a few key directories/packages and files. Here's an overview:
 
 ### Main Files
 - **Main.java**: The driver file that runs the game.
 
-### Model (Game Entities)
-This folder contains the core classes representing the game elements:
-- **Card.java**: Defines a single playing card (rank and suit).
-- **Deck.java**: Represents a deck of 52 cards and handles card dealing.
-- **Player.java**: Represents a player with a hand of cards, money, and actions (folding, betting, etc.).
+### Model Package (Game Entities)
+This package contains the core classes representing the game elements:
+- **Card.java**: Defines a single playing card with properties for rank and suit.
+- **Deck.java**: Represents a deck of 52 cards and handles the logic for shuffling and dealing cards to players.
+- **Hand.java**: Represents a player's hand, containing their dealt cards and the logic to manage them.
+- **Player.java**: Represents a player with attributes such as a hand of cards, money, and actions (folding, betting, etc.).
+- **PlayerNode.java**: Implements a node in the circular linked list for player management. Helps in managing turns for players in the game.
+- **Table.java**: Represents the poker table, managing the players, the pot, and the game state.
 
-### Mechanics (Game Logic)
-This folder contains the core logic of the poker game:
-- **PokerGame.java**: Handles the core game mechanics, including the dealer, betting rounds, and hand resolution.
-- **HandEvaluator.java**: Contains the logic to evaluate poker hands (Royal Flush, Straight, Full House, etc.).
-  
-### Betting
-A subfolder within **Mechanics** that deals with betting actions:
-- **BettingAction.java**: Enum representing the possible actions a player can take during betting: FOLD, CHECK, CALL, RAISE, ALL_IN.
+### Mechanics Package (Game Logic)
+This package contains the core logic of the poker game:
+- **PokerGame.java**: Handles the overall game mechanics, such as dealing cards, managing betting rounds, resolving hands, and determining the winner.
+- **HandEvaluator.java**: Contains the logic for evaluating poker hands (Royal Flush, Straight, Full House, etc.) and determining the best hand.
+- **Betting.java**: Enum that defines the possible betting actions a player can take: FOLD, CHECK, CALL, RAISE, and ALL_IN.
+
+### UI Package (User Interface)
+This package handles the graphical user interface components of the game:
+- **GameUI.java**: Contains the logic for rendering the game's user interface, allowing players to interact with the game via buttons, menus, and other visual elements.
 
 ---
 
-This structure is designed to separate different parts of the game logic, making the code easier to understand and maintain.
+This structure is designed to separate different parts of the game logic and interface, making the code easier to understand and maintain.
 
 ---
 
