@@ -17,6 +17,7 @@ public class Betting
     }
 
     public void startBettingRound() {
+    	this.highestBet = 0;
         System.out.println("\n--- Betting Round Starts ---");
 
         for (Player player : players) {

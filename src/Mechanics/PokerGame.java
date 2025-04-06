@@ -76,7 +76,8 @@ public class PokerGame {
     }
     
     private boolean shouldEndGame() {
-        int playersWithMoney = (int) table.getPlayers().stream().filter(p -> p.getMoney() > 0).count();
-        return playersWithMoney <= 1;
+        long activePlayers = table.getPlayers().stream().filter(p -> p.getMoney() > 0).count();
+        return activePlayers <= 1;
     }
+
 }

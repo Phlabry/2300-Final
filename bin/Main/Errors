@@ -6,8 +6,12 @@ Dont end the game instantly after everyone takes a turn.
 Game doesn’t end properly. Does not correctly determine the winner: invalid hand size
 Behead the player when he runs out of money.
 
+
 Notes
 
+pokerGame still fucked
+eliminate broke people doesnt exist yet
+Deal cards might not be working properly.
 Missing small and big blind system (we can simplify the game by making a default bid amount at the start with 50$, but we have enough time to implement the real system)
 Poker game needs to be completely redone
 Logic for big and small blind should be a boolean on player or playerNode (probably player), in table assign statuses and in betting auto bet depending on status.

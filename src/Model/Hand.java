@@ -23,6 +23,9 @@ public class Hand
 	}
 	
 	
+	public List<Card> getCards() {
+	    return hand;
+	}
 	
 	public String toString() {
 		return hand.toString();

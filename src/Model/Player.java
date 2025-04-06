@@ -1,6 +1,5 @@
 // player with all their attributes: money, deck, etc.
 package Model;
-import java.util.*;
 import Mechanics.HandEvaluator;
 import Mechanics.Betting.BettingAction;
 
@@ -8,22 +7,26 @@ public class Player
 {
 	private String name;
 	private int money;
-	private List<Card> playerHand;
+	private Hand hand;
 	private boolean folded;
 	
 	public Player(String name, int money) {
 		this.name = name;
 		this.money = money;
-		this.playerHand = new ArrayList<>();
+		this.hand = new Hand();
 		this.folded = false;
 	}
 	
 	public void addCard(Card card) {
-		playerHand.add(card);
+		hand.addCard(card);
 	}
 	
 	public void clearHand() {
-		playerHand.clear();
+	    hand.clearHand();
+	}
+
+	public String evaluateHand() {
+	    return HandEvaluator.evaluateHand(hand.getCards());
 	}
 	
 	public String getName() {
@@ -38,8 +41,8 @@ public class Player
         return folded;
     }
 	
-	public List<Card> getHand() {
-		return this.playerHand;
+	public Hand getHand() {
+		return this.hand;
 	}
 	
 	public void setName(String name) {
@@ -49,11 +52,6 @@ public class Player
 	public void setMoney(int money) {
 		this.money = money;
 	}
-	
-
-    public String evaluateHand() {
-        return HandEvaluator.evaluateHand(playerHand);
-    }
     
     public boolean placeBet(BettingAction action, int amount, int highestBet) {
         if (folded) {
@@ -115,6 +113,6 @@ public class Player
     }
 	
 	public String toString() {
-		return name + "has $" + money + "and hand: " + playerHand;
+		return name + "has $" + money + "and hand: " + hand;
 	}
 }
