@@ -43,6 +43,8 @@ public class Betting
             	int allInAmount = player.getMoney();
             	if(allInAmount >= highestBet) {
             		highestBet = allInAmount;
+                    pot += allInAmount;
+
             	}
             } else {
                 if (player.placeBet(action, highestBet, highestBet)) {

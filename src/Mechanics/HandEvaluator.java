@@ -6,7 +6,7 @@ import java.util.*;
 public class HandEvaluator {
 
     public static String evaluateHand(List<Card> hand) {
-        if (hand.size() != 2) return "Invalid hand size";
+        if (hand.size() <2 || hand.size() > 5) return "Invalid hand size";
 
         hand.sort(Comparator.comparing(Card::getRank));
 
@@ -28,7 +28,7 @@ public class HandEvaluator {
     }
 
     private static boolean isStraight(List<Card> hand) {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < hand.size(); i++) {
             if (hand.get(i).getRank().ordinal() + 1 != hand.get(i + 1).getRank().ordinal()) {
                 return false;
             }
