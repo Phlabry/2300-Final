@@ -113,6 +113,6 @@ public class Player
     }
 	
 	public String toString() {
-		return name + "has $" + money + "and hand: " + hand;
+		return name + " has $" + money + " and hand: " + hand;
 	}
 }

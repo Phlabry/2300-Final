@@ -26,6 +26,7 @@ public class PokerGame {
             deck.resetDeck();
             deck.shuffle();
             dealCards();
+            showCards();
             betting.startBettingRound();
             evaluateHands();
             currentRound++;
@@ -42,6 +43,22 @@ public class PokerGame {
             player.clearHand();
             player.addCard(deck.dealCard());
             player.addCard(deck.dealCard());
+        }
+    }
+    
+    
+    private void showCards() {
+    	List<Player> players = table.getPlayers();
+    	for (Player player : players) {
+    	    if (!player.isFolded()) {
+    	        System.out.println(player.getName() + "'s hand:");
+    	        for (Card card : player.getHand().getCards()) {
+    	            System.out.println("  " + card); // relies on Card.toString()
+    	        }
+    	        System.out.println(); // blank line between players
+    	    } else {
+    	        System.out.println(player.getName() + " has folded.");
+    	    }
         }
     }
     
