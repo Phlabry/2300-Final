@@ -6,7 +6,7 @@ import java.util.*;
 public class HandEvaluator {
 
     public static String evaluateHand(List<Card> hand) {
-        if (hand.size() <2 || hand.size() > 5) return "Invalid hand size";
+        if (hand.size() <2 || hand.size() > 7) return "Invalid hand size";
 
         hand.sort(Comparator.comparing(Card::getRank));
 
@@ -28,7 +28,7 @@ public class HandEvaluator {
     }
 
     private static boolean isStraight(List<Card> hand) {
-        for (int i = 0; i < hand.size(); i++) {
+        for (int i = 0; i < hand.size()-1; i++) {
             if (hand.get(i).getRank().ordinal() + 1 != hand.get(i + 1).getRank().ordinal()) {
                 return false;
             }
@@ -49,7 +49,32 @@ public class HandEvaluator {
     }
 
     private static boolean isFullHouse(List<Card> hand) {
-        return hasSameRank(hand, 3) && hasSameRank(hand, 2);
+    	int count = 1;
+        Card.Rank threeRank = null;
+        Card.Rank pairRank = null;
+
+        for (int i = 1; i < hand.size(); i++) {
+            if (hand.get(i).getRank() == hand.get(i - 1).getRank()) {
+                count++;
+            } else {
+                if (count == 3 && threeRank == null) {
+                    threeRank = hand.get(i - 1).getRank();
+                } else if (count == 2) {
+                    pairRank = hand.get(i - 1).getRank();
+                }
+                count = 1; //Reset the count for the next rank
+            }
+        }
+
+        //Check the last rank group
+        if (count == 3 && threeRank == null) {
+            threeRank = hand.get(hand.size() - 1).getRank();
+        } else if (count == 2) {
+            pairRank = hand.get(hand.size() - 1).getRank();
+        }
+
+        //Ensure we have both a three-of-a-kind and a distinct pair
+        return threeRank != null && pairRank != null && !threeRank.equals(pairRank);
     }
 
     private static boolean isThreeOfAKind(List<Card> hand) {
@@ -80,4 +105,5 @@ public class HandEvaluator {
         }
         return rankCounts;
     }
+
 }

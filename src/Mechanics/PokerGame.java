@@ -22,22 +22,52 @@ public class PokerGame {
     
     public void startGame() {
         while (true) {
-            System.out.println("\n--- Starting Round " + currentRound + " ---");
-            deck.resetDeck();
-            deck.shuffle();
-            dealCards();
-            showCards();
-            betting.startBettingRound();
-            evaluateHands();
-            currentRound++;
+        	boolean endRound = false;
+        	
+            while(!endRound) {
+
+	            System.out.println("\n--- Starting Round " + currentRound + " ---");
+	           
+	            //setup before each round
+	            deck.resetDeck();
+	            deck.shuffle();
+	            dealHoleCards();
+	            showHoleCards();
+	            
+	            //Small Blind && Big Blind
+	            
+	            //Start betting -> 3 community cards
+	            betting.startBettingRound();
+	            for(int i=0; i<3; i++) {
+		            dealCommunityCard();
+	            }
+	            showHoleCards();
+
+	            
+	            //Second Round of betting -> 1 more community card
+	            betting.startBettingRound();
+	            dealCommunityCard();
+	            showHoleCards();
+
+
+	            //Third Round of betting -> Last community card
+	            betting.startBettingRound();
+	            dealCommunityCard();
+	            showHoleCards();
+
+	            
+	            //Evaluate Hand -> Next Round
+	            evaluateHands();
+	            currentRound++;
+            }
             
             if (shouldEndGame()) {
-                break;
+            	endRound = true;
             }
         }
     }
     
-    private void dealCards() {
+    private void dealHoleCards() {
         List<Player> players = table.getPlayers();
         for (Player player : players) {
             player.clearHand();
@@ -47,7 +77,7 @@ public class PokerGame {
     }
     
     
-    private void showCards() {
+    private void showHoleCards() {
     	List<Player> players = table.getPlayers();
     	for (Player player : players) {
     	    if (!player.isFolded()) {
@@ -61,6 +91,16 @@ public class PokerGame {
     	    }
         }
     }
+    
+    
+    private void dealCommunityCard() {
+    	Card communityCard = deck.dealCard();
+        List<Player> players = table.getPlayers();
+        for (Player player : players) {
+            player.addCard(communityCard);
+        }
+    }
+    
     
     private void evaluateHands() {
         List<Player> players = table.getPlayers();
@@ -77,14 +117,15 @@ public class PokerGame {
     
     private Player determineWinner(List<Player> players) {
         Player winner = null;
-        String bestHand = "";
+        int bestHand = 0;
         
         for (Player player : players) {
             if (!player.isFolded()) {
                 String handStrength = player.evaluateHand();
-                if (winner == null || handStrength.compareTo(bestHand) > 0) {
+                int cardValue = player.handValue(handStrength);
+                if (winner == null || Integer.compare(cardValue, bestHand) > 0) {
                     winner = player;
-                    bestHand = handStrength;
+                    bestHand = cardValue;
                 }
             }
         }
