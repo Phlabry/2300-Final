@@ -52,20 +52,24 @@ public class Player
 	public void setMoney(int money) {
 		this.money = money;
 	}
+	
+	public void setFolded(boolean status) {
+        this.folded = status;
+    }
     
     public boolean placeBet(BettingAction action, int amount, int highestBet) {
         if (folded) {
-            System.out.println(name + " has already folded.");
+            System.out.println(this.name + " has already folded.");
             return false;
         }
 
         switch (action) {
             case CHECK:
                 if (highestBet == 0) {
-                    System.out.println(name + " checks.");
+                    System.out.println(this.name + " checks.");
                     return true;
                 } else {
-                    System.out.println(name + " cannot check, must call or fold.");
+                    System.out.println(this.name + " cannot check, must call or fold.");
                     return false;
                 }
 
@@ -73,37 +77,37 @@ public class Player
                 int callAmount = highestBet;
                 if (money >= callAmount) {
                     money -= callAmount;
-                    System.out.println(name + " calls with $" + callAmount);
+                    System.out.println(this.name + " calls with $" + callAmount);
                     return true;
                 } else {
-                    System.out.println(name + " does not have enough to call.");
+                    System.out.println(this.name + " does not have enough to call.");
                     return false;
                 }
 
             case RAISE:
                 if (amount > highestBet) {
                     int raiseAmount = amount - highestBet;
-                    if (money >= raiseAmount) {
-                        money -= raiseAmount;
-                        System.out.println(name + " raises to $" + amount);
+                    if (this.money >= raiseAmount) {
+                    	this.money -= raiseAmount;
+                        System.out.println(this.name + " raises to $" + amount);
                         return true;
                     } else {
-                        System.out.println(name + " does not have enough to raise.");
+                        System.out.println(this.name + " does not have enough to raise.");
                         return false;
                     }
                 } else {
-                    System.out.println(name + " must raise above the highest bet.");
+                    System.out.println(this.name + " must raise above the highest bet.");
                     return false;
                 }
 
             case FOLD:
                 folded = true;
-                System.out.println(name + " folds.");
+                System.out.println(this.name + " folds.");
                 return true;
 
             case ALL_IN:
-                System.out.println(name + " goes all-in with $" + money);
-                money = 0;
+                System.out.println(this.name + " goes all-in with $" + this.money);
+                this.money = 0;
                 	
                 return true;
 

@@ -19,7 +19,10 @@ public class Betting
     public void startBettingRound() {
     	this.highestBet = 0;
         System.out.println("\n--- Betting Round Starts ---");
-
+        nextBettingRound();
+    }
+    
+    public void nextBettingRound() {
         for (Player player : players) {
             if (player.isFolded()) {
                 continue;
@@ -53,6 +56,7 @@ public class Betting
             }
         }
     }
+    
 
     private BettingAction parseInput(String input) {
         return switch (input.toLowerCase()) {
