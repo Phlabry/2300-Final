@@ -23,25 +23,90 @@ public class HandEvaluator {
     }
 
     private static boolean isFlush(List<Card> hand) {
-        Card.Suit suit = hand.get(0).getSuit();
-        return hand.stream().allMatch(card -> card.getSuit() == suit);
+    	//Creates a hashMap of the Suits
+    	Map<Card.Suit, Integer> suitCounts = new HashMap<>();
+        
+    	//For every card in hand, get the suit and counts it (0 if new or add 1 if seen before)
+        for (Card card : hand) {
+            Card.Suit suit = card.getSuit();
+            suitCounts.put(suit, suitCounts.getOrDefault(suit, 0) + 1);
+        }
+
+        //Checking all the suit counts, if more than or equal to 5, then return true
+        for (int count : suitCounts.values()) {
+            if (count >= 5) return true;
+        }
+
+        return false;
     }
 
+
     private static boolean isStraight(List<Card> hand) {
-        for (int i = 0; i < hand.size()-1; i++) {
-            if (hand.get(i).getRank().ordinal() + 1 != hand.get(i + 1).getRank().ordinal()) {
-                return false;
+    	//Creates a HashSet of the cards which collects all unique card ranks (set ignores duplicates)
+    	Set<Integer> uniqueRanks = new HashSet<>();
+        
+    	//For every card in hand, get the rank and add the rank to the HashSet
+        for (Card card : hand) {
+            int rankValue = card.getRank().ordinal();
+            uniqueRanks.add(rankValue);
+            
+            //Handle Ace being lowest card as well
+            if (card.getRank() == Card.Rank.ACE) {
+                uniqueRanks.add(0); //Using 0 for Ace-low straight
             }
         }
-        return true;
+
+        //Converts the set of unique ranks to a list in ascending order
+        List<Integer> sorted = new ArrayList<>(uniqueRanks);
+        Collections.sort(sorted);
+
+        //Counts the consective cards, 5 consective cards -> return true, else reset count
+        int consecutive = 0;
+        for (int i = 0; i < sorted.size(); i++) {
+            if (i > 0 && sorted.get(i) == sorted.get(i - 1) + 1) {
+                consecutive++;
+            } else {
+                consecutive = 1;
+            }
+
+            if (consecutive >= 5) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static boolean isRoyalFlush(List<Card> hand) {
-        return isFlush(hand) && isStraight(hand) && hand.get(4).getRank() == Card.Rank.ACE;
+    	//Checks if it is a straight flush as well as if the last card is an ace
+    	hand.sort(Comparator.comparing(Card::getRank));  //Sort by rank
+    	return isStraightFlush(hand) && hand.get(hand.size() - 1).getRank() == Card.Rank.ACE;
     }
 
     private static boolean isStraightFlush(List<Card> hand) {
-        return isFlush(hand) && isStraight(hand);
+    	//Creates a hashMap that has the suit and the list of cards that are in that suit
+        Map<Card.Suit, List<Card>> suitGroups = new HashMap<>();
+        
+    	//For every card in hand, get the Suit, if not suitGroup doesn't have that suit create an Arraylist and add card to group
+        for (Card card : hand) {
+        	Card.Suit suit = card.getSuit();
+        	if (!suitGroups.containsKey(suit)) {
+        	    suitGroups.put(suit, new ArrayList<>());
+        	}
+        	suitGroups.get(suit).add(card); 
+
+        }
+
+        //Check each suit group with 5+ cards for a straight
+        for (List<Card> suitedCards : suitGroups.values()) {
+            if (suitedCards.size() >= 5) {
+                if (isStraight(suitedCards)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static boolean isFourOfAKind(List<Card> hand) {

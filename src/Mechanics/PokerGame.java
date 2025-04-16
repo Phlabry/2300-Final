@@ -175,3 +175,4 @@ public class PokerGame {
 
         return activePlayers <= 1; // Round ends if 0 or 1 players remain
     }
+}
