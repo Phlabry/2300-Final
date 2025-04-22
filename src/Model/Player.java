@@ -10,6 +10,9 @@ public class Player
 	private Hand hand;
 	private boolean folded;
 	
+	private String HandValue;       
+    private Card.Rank highCard;
+	
 	public Player(String name, int money) {
 		this.name = name;
 		this.money = money;
@@ -24,10 +27,22 @@ public class Player
 	public void clearHand() {
 	    hand.clearHand();
 	}
+	
+	public String getHandValue() {
+        return HandValue;
+    }
 
-	public String evaluateHand() {
-	    return HandEvaluator.evaluateHand(hand.getCards());
-	}
+    public void setHandValue(String HandValue) {
+        this.HandValue = HandValue;
+    }
+
+    public Card.Rank getHighCard() {
+        return highCard;
+    }
+
+    public void setHighCard(Card.Rank highCard) {
+        this.highCard = highCard;
+    }
 	
 	public String getName() {
 		return this.name;
@@ -112,31 +127,6 @@ public class Player
 
             default:
                 return false;
-        }
-    }
-	
-    public static int handValue(String handDescription) {
-        switch (handDescription) {
-            case "Royal Flush":
-                return 10;
-            case "Straight Flush":
-                return 9;
-            case "Four of a Kind":
-                return 8;
-            case "Full House":
-                return 7;
-            case "Flush":
-                return 6;
-            case "Straight":
-                return 5;
-            case "Three of a Kind":
-                return 4;
-            case "Two Pair":
-                return 3;
-            case "One Pair":
-                return 2;
-            default:
-                return 1;  // High Card
         }
     }
     

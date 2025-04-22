@@ -150,7 +150,10 @@ public class PokerGame {
         List<Player> players = table.getPlayers();
         for (Player player : players) {
             if (!player.isFolded()) {
-                System.out.println(player.getName() + " evaluates hand: " + player.evaluateHand());
+                HandStrength result = HandEvaluator.evaluateHandWithMax(player.getHand().getCards());
+                player.setHandValue(result.getHandValue());
+                player.setHighCard(result.getHighCard());
+                System.out.println(player.getName() + " evaluates hand: " + player.getHandValue() + " (High Card:" + player.getHighCard()+ ")");
             }
         }
     }
@@ -158,22 +161,32 @@ public class PokerGame {
     // Determines which active player has the best hand
     private List<Player> determineWinners(List<Player> players) {
         List<Player> winners = new ArrayList<>();
-        int bestHand = -1;
+        int bestHandValue = -1;
+        Card.Rank bestHighCard = null;
 
         for (Player player : players) {
-            if (!player.isFolded()) {
-                String handStrength = player.evaluateHand();    //Get string representing hand (e.g., "Flush")
-                int handValue = player.handValue(handStrength); //Convert String to numeric value for comparison
-                
-                if (handValue > bestHand) {
+            if (player.isFolded()) continue;
+
+            int currentHandValue = HandEvaluator.handValue(player.getHandValue());
+            Card.Rank currentHighCard = player.getHighCard();
+
+            if (currentHandValue > bestHandValue) {
+                winners.clear();
+                winners.add(player);
+                bestHandValue = currentHandValue;
+                bestHighCard = currentHighCard;
+            } else if (currentHandValue == bestHandValue) {
+                int compare = currentHighCard.compareTo(bestHighCard);
+                if (compare > 0) {
                     winners.clear();
                     winners.add(player);
-                    bestHand = handValue;
-                } else if (handValue == bestHand) {
-                    winners.add(player);
+                    bestHighCard = currentHighCard;
+                } else if (compare == 0) {
+                    winners.add(player); // Tie
                 }
             }
         }
+
         return winners;
     }
 

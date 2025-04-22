@@ -5,22 +5,26 @@ import java.util.*;
 
 public class HandEvaluator {
 
-    public static String evaluateHand(List<Card> hand) {
-        if (hand.size() <2 || hand.size() > 7) return "Invalid hand size";
+	public static HandStrength evaluateHandWithMax(List<Card> hand) {
+	    if (hand.size() < 2 || hand.size() > 7) return new HandStrength("Invalid", Card.Rank.TWO);
 
-        hand.sort(Comparator.comparing(Card::getRank));
+	    hand.sort(Comparator.comparing(Card::getRank));
 
-        if (isRoyalFlush(hand)) return "Royal Flush";
-        if (isStraightFlush(hand)) return "Straight Flush";
-        if (isFourOfAKind(hand)) return "Four of a Kind";
-        if (isFullHouse(hand)) return "Full House";
-        if (isFlush(hand)) return "Flush";
-        if (isStraight(hand)) return "Straight";
-        if (isThreeOfAKind(hand)) return "Three of a Kind";
-        if (isTwoPair(hand)) return "Two Pair";
-        if (isOnePair(hand)) return "One Pair";
-        return "High Card";
-    }
+	    // Check hand types in order of strength
+	    if (isRoyalFlush(hand)) return new HandStrength("Royal Flush", Card.Rank.ACE);
+	    if (isStraightFlush(hand)) return new HandStrength("Straight Flush", getHighestInStraight(hand));
+	    if (isFourOfAKind(hand)) return new HandStrength("Four of a Kind", getNOfAKindRank(hand, 4));
+	    if (isFullHouse(hand)) return new HandStrength("Full House", getNOfAKindRank(hand, 3));
+	    if (isFlush(hand)) return new HandStrength("Flush", getHighestOfSuit(hand));
+	    if (isStraight(hand)) return new HandStrength("Straight", getHighestInStraight(hand));
+	    if (isThreeOfAKind(hand)) return new HandStrength("Three of a Kind", getNOfAKindRank(hand, 3));
+	    if (isTwoPair(hand)) return new HandStrength("Two Pair", getHighestPair(hand));
+	    if (isOnePair(hand)) return new HandStrength("One Pair", getNOfAKindRank(hand, 2));
+
+	    // High Card
+	    Card highest = Collections.max(hand, Comparator.comparing(Card::getRank));
+	    return new HandStrength("High Card", highest.getRank());
+	}
 
     private static boolean isFlush(List<Card> hand) {
     	//Creates a hashMap of the Suits
@@ -169,5 +173,88 @@ public class HandEvaluator {
             rankCounts.put(card.getRank(), rankCounts.getOrDefault(card.getRank(), 0) + 1);
         }
         return rankCounts;
+    }
+    
+    private static Card.Rank getNOfAKindRank(List<Card> hand, int n) {
+        Map<Card.Rank, Integer> counts = countRanks(hand);
+        return counts.entrySet().stream()
+            .filter(e -> e.getValue() == n)
+            .map(Map.Entry::getKey)
+            .max(Comparator.naturalOrder())
+            .orElse(Card.Rank.TWO);
+    }
+
+    private static Card.Rank getHighestPair(List<Card> hand) {
+        Map<Card.Rank, Integer> counts = countRanks(hand);
+        return counts.entrySet().stream()
+            .filter(e -> e.getValue() >= 2)
+            .map(Map.Entry::getKey)
+            .max(Comparator.naturalOrder())
+            .orElse(Card.Rank.TWO);
+    }
+
+    private static Card.Rank getHighestOfSuit(List<Card> hand) {
+        Map<Card.Suit, List<Card>> suits = new HashMap<>();
+        for (Card card : hand) {
+            suits.computeIfAbsent(card.getSuit(), k -> new ArrayList<>()).add(card);
+        }
+
+        return suits.values().stream()
+            .filter(list -> list.size() >= 5)
+            .flatMap(List::stream)
+            .map(Card::getRank)
+            .max(Comparator.naturalOrder())
+            .orElse(Card.Rank.TWO);
+    }
+
+    private static Card.Rank getHighestInStraight(List<Card> hand) {
+        Set<Integer> uniqueRanks = new HashSet<>();
+        for (Card card : hand) {
+            uniqueRanks.add(card.getRank().ordinal());
+            if (card.getRank() == Card.Rank.ACE) uniqueRanks.add(-1);  // Ace low
+        }
+
+        List<Integer> sorted = new ArrayList<>(uniqueRanks);
+        Collections.sort(sorted);
+
+        int count = 1;
+        int bestHigh = sorted.get(0);
+        for (int i = 1; i < sorted.size(); i++) {
+            if (sorted.get(i) == sorted.get(i - 1) + 1) {
+                count++;
+                if (count >= 5) {
+                    bestHigh = sorted.get(i);
+                }
+            } else {
+                count = 1;
+            }
+        }
+
+        return bestHigh == -1 ? Card.Rank.FIVE : Card.Rank.values()[bestHigh];
+    }
+
+    public static int handValue(String handDescription) {
+        switch (handDescription) {
+            case "Royal Flush":
+                return 10;
+            case "Straight Flush":
+                return 9;
+            case "Four of a Kind":
+                return 8;
+            case "Full House":
+                return 7;
+            case "Flush":
+                return 6;
+            case "Straight":
+                return 5;
+            case "Three of a Kind":
+                return 4;
+            case "Two Pair":
+                return 3;
+            case "One Pair":
+                return 2;
+            default:
+                return 1;  // High Card
+        }
     }
 }
