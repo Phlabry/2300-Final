@@ -1,6 +1,7 @@
 // driver
 package Main;
 import Model.*;
+import UI.*;
 import Mechanics.*;
 import java.util.*;
 
@@ -8,6 +9,7 @@ public class Driver {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+    	GameUI gui = new GameUI();
 
         List<Player> players = new ArrayList<>();
         System.out.println("Enter number of players:");
