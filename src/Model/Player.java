@@ -57,7 +57,7 @@ public class Player
         this.folded = status;
     }
     
-    public boolean placeBet(BettingAction action, int amount, int highestBet) {
+    public boolean placeBet(BettingAction action, int amount, int highestBet, int baseBet) {
         if (folded) {
             System.out.println(this.name + " has already folded.");
             return false;
@@ -65,8 +65,7 @@ public class Player
 
         switch (action) {
             case CHECK:
-                if (highestBet == 0) {
-                    System.out.println(this.name + " checks.");
+                if (highestBet == baseBet) {
                     return true;
                 } else {
                     System.out.println(this.name + " cannot check, must call or fold.");
