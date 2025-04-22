@@ -29,7 +29,7 @@ public class PokerGame {
         	
         	//Starting the Game round loop
             while(!endRound) {
-            	
+            	shouldEndGame();
             	//Printing the Game round number
 	            System.out.println("\n--- Starting Round " + currentRound + " ---");
 	           
@@ -158,7 +158,7 @@ public class PokerGame {
         }
     }
     
-    // Determines which active player has the best hand
+    //Determines which active player has the best hand
     private List<Player> determineWinners(List<Player> players) {
         List<Player> winners = new ArrayList<>();
         int bestHandValue = -1;
@@ -241,7 +241,7 @@ public class PokerGame {
         List<Player> players = table.getPlayers();
 
         for (Player player : players) {
-            if (!player.isFolded()) {
+            if (!player.isFolded() && (player.getMoney() <= 0)) {
                 activePlayers++;
             }
         }
