@@ -26,7 +26,6 @@ public class PokerGame {
     	while (true) {
     		//Boolean endRound Variable to start and end the game round loop
         	boolean endRound = false;
-        	
         	//Starting the Game round loop
             while(!endRound) {
             	
