@@ -127,6 +127,7 @@ public class PokerGame {
                 System.out.println(player.getName() + "'s hand:"); 
                 for (Card card : player.getHand().getCards()) {
                     System.out.println("  " + card); 
+                    
                 }
                 System.out.println(); 
             } else {
