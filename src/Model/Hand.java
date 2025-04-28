@@ -28,6 +28,11 @@ public class Hand
 	}
 	
 	public String toString() {
-		return hand.toString();
+		if (hand.isEmpty()) return "(empty)";
+        StringBuilder sb = new StringBuilder();
+        for (Card card : hand) {
+            sb.append(card).append(", ");
+        }
+        return sb.substring(0, sb.length() - 2);
 	}
 }

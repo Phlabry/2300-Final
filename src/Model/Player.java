@@ -10,6 +10,9 @@ public class Player
 	private Hand hand;
 	private boolean folded;
 	
+	private String HandValue;       
+    private Card.Rank highCard;
+	
 	public Player(String name, int money) {
 		this.name = name;
 		this.money = money;
@@ -24,10 +27,22 @@ public class Player
 	public void clearHand() {
 	    hand.clearHand();
 	}
+	
+	public String getHandValue() {
+        return HandValue;
+    }
 
-	public String evaluateHand() {
-	    return HandEvaluator.evaluateHand(hand.getCards());
-	}
+    public void setHandValue(String HandValue) {
+        this.HandValue = HandValue;
+    }
+
+    public Card.Rank getHighCard() {
+        return highCard;
+    }
+
+    public void setHighCard(Card.Rank highCard) {
+        this.highCard = highCard;
+    }
 	
 	public String getName() {
 		return this.name;
@@ -52,20 +67,23 @@ public class Player
 	public void setMoney(int money) {
 		this.money = money;
 	}
+	
+	public void setFolded(boolean status) {
+        this.folded = status;
+    }
     
-    public boolean placeBet(BettingAction action, int amount, int highestBet) {
+    public boolean placeBet(BettingAction action, int amount, int highestBet, int baseBet) {
         if (folded) {
-            System.out.println(name + " has already folded.");
+            System.out.println(this.name + " has already folded.");
             return false;
         }
 
         switch (action) {
             case CHECK:
-                if (highestBet == 0) {
-                    System.out.println(name + " checks.");
+                if (highestBet == baseBet) {
                     return true;
                 } else {
-                    System.out.println(name + " cannot check, must call or fold.");
+                    System.out.println(this.name + " cannot check, must call or fold.");
                     return false;
                 }
 
@@ -73,37 +91,37 @@ public class Player
                 int callAmount = highestBet;
                 if (money >= callAmount) {
                     money -= callAmount;
-                    System.out.println(name + " calls with $" + callAmount);
+                    System.out.println(this.name + " calls with $" + callAmount);
                     return true;
                 } else {
-                    System.out.println(name + " does not have enough to call.");
+                    System.out.println(this.name + " does not have enough to call.");
                     return false;
                 }
 
             case RAISE:
                 if (amount > highestBet) {
                     int raiseAmount = amount - highestBet;
-                    if (money >= raiseAmount) {
-                        money -= raiseAmount;
-                        System.out.println(name + " raises to $" + amount);
+                    if (this.money >= raiseAmount) {
+                    	this.money -= raiseAmount;
+                        System.out.println(this.name + " raises to $" + amount);
                         return true;
                     } else {
-                        System.out.println(name + " does not have enough to raise.");
+                        System.out.println(this.name + " does not have enough to raise.");
                         return false;
                     }
                 } else {
-                    System.out.println(name + " must raise above the highest bet.");
+                    System.out.println(this.name + " must raise above the highest bet.");
                     return false;
                 }
 
             case FOLD:
                 folded = true;
-                System.out.println(name + " folds.");
+                System.out.println(this.name + " folds.");
                 return true;
 
             case ALL_IN:
-                System.out.println(name + " goes all-in with $" + money);
-                money = 0;
+                System.out.println(this.name + " goes all-in with $" + this.money);
+                this.money = 0;
                 	
                 return true;
 
@@ -111,8 +129,8 @@ public class Player
                 return false;
         }
     }
-	
+    
 	public String toString() {
-		return name + "has $" + money + "and hand: " + hand;
+		return name + " has $" + money + " and hand: " + hand;
 	}
 }
