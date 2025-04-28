@@ -1,68 +1,73 @@
-// UI
 package UI;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.awt.Color;
-
 
 public class GameUI extends JFrame {
 
-    // constructor that sets up the GUI
+    private static final int BUTTON_WIDTH = 100;
+    private static final int BUTTON_HEIGHT = 100;
+
     public GameUI() {
         super("Texas Hold 'Em");
-        
+
+        this.setLayout(new BorderLayout());
+        this.getContentPane().setBackground(Color.GREEN);
+
+        // Panels
         JPanel gamePanel = new JPanel();
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
-        this.getContentPane().setBackground( Color.GREEN );
+        JPanel headerPanel = new JPanel();
+        headerPanel.setOpaque(false);
 
-        // all UI components
+        // Title
         JLabel title = new JLabel("Texas Hold 'Em");
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        headerPanel.add(title);
 
+        // Buttons
         JButton startButton = new JButton("Start New Game");
-        startButton.setPreferredSize(new Dimension(100, 100));
-
+        startButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        
+        JButton call = new JButton("Call");
+        call.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        
         JButton check = new JButton("Check");
-        check.setPreferredSize(new Dimension(100, 100));
+        check.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
         JButton fold = new JButton("Fold");
-        fold.setPreferredSize(new Dimension(100, 100));
+        fold.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
         JButton raise = new JButton("Raise");
-        raise.setPreferredSize(new Dimension(100, 100));
+        raise.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
         JButton allIn = new JButton("All In");
-        allIn.setPreferredSize(new Dimension(100, 100));
+        allIn.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
-        // set button panel layout
-        FlowLayout buttonLayout = new FlowLayout();
-        buttonPanel.setLayout(buttonLayout);
-
-        // add initial UI components
-        buttonPanel.add(title);
+        buttonPanel.setLayout(new FlowLayout());
         buttonPanel.add(startButton);
 
-        // add buttonPanel to the frame (not "panel")
-        this.add(buttonPanel);
-        this.add(gamePanel)
+        this.add(headerPanel, BorderLayout.NORTH);
+        this.add(gamePanel, BorderLayout.CENTER);
+        this.add(buttonPanel, BorderLayout.SOUTH);
 
-        // add action listener to start button
+        // Start button logic
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                buttonPanel.removeAll();
+                buttonPanel.add(call);
                 buttonPanel.add(check);
                 buttonPanel.add(fold);
                 buttonPanel.add(raise);
                 buttonPanel.add(allIn);
-                buttonPanel.remove(startButton); // remove start button
 
                 buttonPanel.revalidate();
                 buttonPanel.repaint();
             }
         });
 
-        // JFrame properties
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(800, 500);
         this.setVisible(true);
