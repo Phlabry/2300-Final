@@ -1,13 +1,25 @@
 package UI;
 
+import Mechanics.*;
+import Model.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class GameUI extends JFrame {
 
     private static final int BUTTON_WIDTH = 100;
     private static final int BUTTON_HEIGHT = 100;
+
+    private PokerGame pokerGame;
+    private Player currentPlayer;
+    private JPanel gamePanel;
+    private JPanel buttonPanel;
+    private JPanel headerPanel;
+    private JLabel statusLabel;
+    private JButton call, check, fold, raise, allIn;
 
     public GameUI() {
         super("Texas Hold 'Em");
@@ -15,37 +27,59 @@ public class GameUI extends JFrame {
         this.setLayout(new BorderLayout());
         this.getContentPane().setBackground(Color.GREEN);
 
-        // Panels
-        JPanel gamePanel = new JPanel();
-        JPanel buttonPanel = new JPanel();
+        //Panels
+        gamePanel = new JPanel();
+        
+        buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
-        JPanel headerPanel = new JPanel();
+        
+        headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setOpaque(false);
 
-        // Title
+        //Initalize title and add it to headerPanel
         JLabel title = new JLabel("Texas Hold 'Em");
         title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(title);
 
-        // Buttons
+        
+        //Initialize statusLabel and add it to headerPanel
+        statusLabel = new JLabel("Waiting for Game to Start");
+        statusLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        headerPanel.add(statusLabel);  
+        
+        
+        //Buttons
         JButton startButton = new JButton("Start New Game");
-        startButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        startButton.setPreferredSize(new Dimension(BUTTON_WIDTH*2, BUTTON_HEIGHT));
         
-        JButton call = new JButton("Call");
+        JButton easyButton = new JButton("Easy");
+        easyButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+
+        JButton mediumButton = new JButton("Medium");
+        mediumButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+
+        JButton hardButton = new JButton("Hard");
+        hardButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+
+        call = new JButton("Call");
         call.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-        
-        JButton check = new JButton("Check");
+
+        check = new JButton("Check");
         check.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
-        JButton fold = new JButton("Fold");
+        fold = new JButton("Fold");
         fold.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
-        JButton raise = new JButton("Raise");
+        raise = new JButton("Raise");
         raise.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
-        JButton allIn = new JButton("All In");
+        allIn = new JButton("All In");
         allIn.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
+        //Set Layout
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.add(startButton);
 
@@ -53,23 +87,245 @@ public class GameUI extends JFrame {
         this.add(gamePanel, BorderLayout.CENTER);
         this.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Start button logic
+        //Start button logic -> Difficulty selection -> Start game
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 buttonPanel.removeAll();
-                buttonPanel.add(call);
-                buttonPanel.add(check);
-                buttonPanel.add(fold);
-                buttonPanel.add(raise);
-                buttonPanel.add(allIn);
-
+                statusLabel.setText("Select difficulty");
+                
+                //Show difficulty selection
+                buttonPanel.add(easyButton);
+                buttonPanel.add(mediumButton);
+                buttonPanel.add(hardButton);
+                
                 buttonPanel.revalidate();
                 buttonPanel.repaint();
             }
         });
 
+        easyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                startPokerGameWithDifficulty(1000); //$1000 starting
+            }
+        });
+
+        mediumButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                startPokerGameWithDifficulty(5000); //$5000 starting
+            }
+        });
+
+        hardButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                startPokerGameWithDifficulty(10000); //$10000 starting
+            }
+        });
+        
+        //Button actions to interact with the game
+        call.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
+                    System.out.println("Call button clicked");
+                    pokerGame.gameAction("call");
+                    checkGameState();
+                }
+            }
+        });
+
+        check.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
+                    System.out.println("Check button clicked");
+                    pokerGame.gameAction("check");
+                    checkGameState();
+                }
+            }
+        });
+
+        fold.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
+                    System.out.println("Fold button clicked");
+                    pokerGame.gameAction("fold");
+                    checkGameState();
+                }
+            }
+        });
+
+        raise.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
+                    System.out.println("Raise button clicked");
+                    String raiseAmount = JOptionPane.showInputDialog("Enter raise amount:");
+                    try {
+                        int amount = Integer.parseInt(raiseAmount);
+                        pokerGame.gameActionRaising("raise", amount);
+                        checkGameState();
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(GameUI.this, "Please enter a valid number.");
+                    }
+                }
+            }
+        });
+
+        allIn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
+                    System.out.println("All In button clicked");
+                    pokerGame.gameAction("allin");
+                    checkGameState();
+                }
+            }
+        });
+
+
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(800, 500);
         this.setVisible(true);
+    }
+    
+    //Setup game actions buttons
+    private void setupGameActionButtons() {
+        buttonPanel.removeAll();
+        buttonPanel.add(call);
+        buttonPanel.add(check);
+        buttonPanel.add(fold);
+        buttonPanel.add(raise);
+        buttonPanel.add(allIn);
+
+        buttonPanel.revalidate();
+        buttonPanel.repaint();
+    }
+
+    // Check game state after an action and manage AI actions
+    private void checkGameState() {
+        // Update current player reference
+        currentPlayer = pokerGame.getCurrentPlayer();
+        updateUI();
+        
+        // Process AI moves if it's not human's turn
+        if (currentPlayer != null && !currentPlayer.isHuman()) {
+            simulateAIActions();
+        }
+        
+        // Check if betting round is complete
+        if (pokerGame.isBettingRoundComplete()) {
+            statusLabel.setText("Betting round complete. Advancing phase...");
+            // Slight delay before advancing phase for visual feedback
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            pokerGame.advancePhase();
+            updateUI();
+        }
+    }
+    
+    private void simulateAIActions() {
+        // Handle AI actions in sequence until it's the human's turn again
+        while (currentPlayer != null && !currentPlayer.isHuman()) {
+            statusLabel.setText(currentPlayer.getName() + " is thinking...");
+            updateUI();
+            
+            // Add a small delay for realistic AI "thinking"
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            
+            // Let the AI decide and execute an action
+            if (currentPlayer instanceof AutoPlayer) {
+                String action = ((AutoPlayer) currentPlayer).decideAction();
+                System.out.println("AI choosing action: " + action);
+                pokerGame.gameAction(action.toLowerCase());
+                
+                // Update current player after action
+                currentPlayer = pokerGame.getCurrentPlayer();
+                updateUI();
+                
+                // Check if betting round is complete after AI move
+                if (pokerGame.isBettingRoundComplete()) {
+                    statusLabel.setText("Betting round complete. Advancing phase...");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    pokerGame.advancePhase();
+                    updateUI();
+                }
+            }
+        }
+    }
+    
+    //Start game
+    private void startPokerGameWithDifficulty(int startingMoney) {
+        List<Player> players = new ArrayList<>();
+        int numPlayers = 5;
+
+        //Real player
+        String name = JOptionPane.showInputDialog("Enter your name:");
+        if (name == null || name.trim().isEmpty()) {
+            name = "Player";  // Default name
+        }
+        players.add(new Player(name, startingMoney, true));
+        
+        for (int i = 0; i < numPlayers-1; i++) {
+            players.add(new AutoPlayer("Bot " + (i + 1), startingMoney, false));
+        }
+
+        pokerGame = new PokerGame(players); 
+        pokerGame.startGame();
+        
+        // Important: Get the current player after starting the game
+        currentPlayer = pokerGame.getCurrentPlayer();
+        if (currentPlayer == null) {
+            System.out.println("Error: currentPlayer is null after starting the game.");
+            return;  // Exit the method if currentPlayer is null
+        }
+        
+        // Setup action buttons and update UI
+        setupGameActionButtons();
+        updateUI();
+        
+        // If first player is AI, automatically handle their action
+        if (currentPlayer != null && !currentPlayer.isHuman()) {
+            simulateAIActions();  //Automatically simulate AI actions if it's AI's turn
+        }
+    }
+    
+    private void updateUI() {
+        if (pokerGame == null) return;
+        
+        // Clear game panel
+        gamePanel.removeAll();
+        
+        // Display community cards (to be implemented)
+        JPanel communityPanel = new JPanel();
+        communityPanel.setOpaque(false);
+        communityPanel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Color.WHITE), "Community Cards"));
+        gamePanel.add(communityPanel);
+        
+        // Display player information
+        if (currentPlayer != null) {
+            JPanel playerPanel = new JPanel();
+            playerPanel.setOpaque(false);
+            playerPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.WHITE), 
+                currentPlayer.getName() + " - $" + currentPlayer.getMoney()));
+            
+            //Will add player cards here
+            gamePanel.add(playerPanel);
+            
+            //Update status label
+            statusLabel.setText("Current player: " + currentPlayer.getName() + 
+                               (currentPlayer.isHuman() ? " (YOU)" : ""));
+        }
+        // Refresh UI
+        gamePanel.revalidate();
+        gamePanel.repaint();
     }
 }

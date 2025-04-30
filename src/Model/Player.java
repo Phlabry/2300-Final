@@ -9,16 +9,22 @@ public class Player
 	private int money;
 	private Hand hand;
 	private boolean folded;
+    private boolean isHuman;
 	
 	private String HandValue;       
     private Card.Rank highCard;
 	
-	public Player(String name, int money) {
+	public Player(String name, int money, boolean isHuman) {
 		this.name = name;
 		this.money = money;
 		this.hand = new Hand();
 		this.folded = false;
+        this.isHuman = isHuman;
 	}
+	
+	public boolean isHuman() {
+        return isHuman;
+    }
 	
 	public void addCard(Card card) {
 		hand.addCard(card);

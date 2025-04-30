@@ -7,77 +7,173 @@ public class PokerGame {
     private Deck deck;
     private Table table;
     private Betting betting;
+    private Player currentPlayer;
     private int currentRound;
     private int leftoverRollover;
+    private int phase;
+
     
-    public PokerGame(List<Player> players, Scanner scanner) {
+    public PokerGame(List<Player> players) {
         this.deck = new Deck();
         this.table = new Table();
-        this.betting = new Betting(players, scanner);
+        this.betting = new Betting(players);
+        this.currentPlayer = null;
         this.currentRound = 1;
+        //0 = preflop, 1 = flop, 2 = turn, 3 = river, 4 = showdown
+        this.phase = 0;
         
         for (Player player : players) {
             table.addPlayer(player);
         }
     }
     
-    public void startGame() {
-        //Starting the game loop
-    	while (true) {
-    		//Boolean endRound Variable to start and end the game round loop
-        	boolean endRound = false;
-        	//Starting the Game round loop
-            while(!endRound) {
-            	shouldEndGame();
-            	//Printing the Game round number
-	            System.out.println("\n--- Starting Round " + currentRound + " ---");
-	           
-	            //Setup before each round
-	            deck.resetDeck(); //Reset Deck
-	            deck.shuffle(); //Shuffle Deck
-	            resetStatus(); //Reset Folded Status
-	            setupBlinds(); //Setup blinds
-	            dealHoleCards(); //Deal hole Cards
-	            showHoleCards(); //Show Hole Cards
-	            
-	            
-	            //First Betting Round -> Deal 3 community cards
-	            betting.startBettingRound();
-	            
-	            //If there is only one player still in the game, then end this game round
-	            if (shouldEndGame()) {
-	            	endRound = true;
-	            	break;
-	            }
-	            for(int i=0; i<3; i++) {
-		            dealCommunityCard();
-	            }
-	            showHoleCards();
 
-	            
-	            //Second & Third Betting Rounds -> Each Round Deal 1 more Community Card
-	            for(int i=0; i<2; i++) {
-	            	betting.nextBettingRound();
-		            
-		            //If there is only one player, then end round
-		            if (shouldEndGame()) {
-		            	endRound = true;
-		            	break;
-		            }
-		            dealCommunityCard();
-		            showHoleCards();
-	            }
-	            
-	            
-	            //Evaluate Hand -> Distribute Pot(s) -> Next Game Round
-	            evaluateHands();
-	            distributePots(); 
-
-	            currentRound++;
-            }
+    public void advancePhase() {
+        switch (phase) {
+            case 0:
+                continueToFlop();
+                break;
+            case 1:
+                continueToTurn();
+                break;
+            case 2:
+                continueToRiver();
+                break;
+            case 3:
+                evaluateHandsAndDetermineWinner();
+                break;
+        }
+        if (phase < 3) {
+            phase++;
+        } else {
+            phase = 0;
         }
     }
+
+    //start game which calls the starting methods
+    public void startGame() {
+        //Initialize deck, table, and reset everything
+        this.deck.resetDeck();
+        this.deck.shuffle();
+        this.resetStatus();
+
+        System.out.println("\n--- Starting Round " + currentRound + " ---");
+
+        //Deal the blinds and deal hole cards and show hole cards to Human player
+        setupBlinds();
+        dealHoleCards();
+        showHoleCards();
+
+        //Set Current Player to Human Player
+        currentPlayer = table.getPlayers().get(0); 
+
+        //Start first betting round
+        betting.startBettingRound();  
+    }
+
     
+    //Called by GUI after first betting round is complete
+    public void continueToFlop() {
+        for (int i = 0; i < 3; i++) {
+            dealCommunityCard();
+        }
+        showHoleCards();
+
+        //Start Second betting round
+        betting.nextBettingRound();  
+    }
+
+    //Called after second betting round is complete
+    public void continueToTurn() {
+        dealCommunityCard();
+        showHoleCards();
+
+        //Start Third betting round
+        betting.nextBettingRound();  
+    }
+
+    //Called after third betting round is complete
+    public void continueToRiver() {
+        dealCommunityCard();
+        showHoleCards();
+
+        //Start Last betting round
+        betting.nextBettingRound(); 
+    } 
+    
+    //Called after Last Betting round is complete
+    public void evaluateHandsAndDetermineWinner() {
+        //No more betting rounds -> Evaluate and finish
+        evaluateHands();
+        distributePots();
+
+        currentRound++;
+        System.out.println("Round " + (currentRound - 1) + " complete.");
+    }
+
+    public boolean isBettingRoundComplete() {
+        return betting.isBettingRoundComplete();
+    }
+
+    //Get all players who are still active in the hand
+    public List<Player> getActivePlayers() {
+        List<Player> active = new ArrayList<>();
+        for (Player player : table.getPlayers()) {  // Assuming table.getPlayers() gives all players
+            if (!player.isFolded() && player.getMoney() > 0) {
+                active.add(player);
+            }
+        }
+        return active;
+    }
+
+    //Advance turn to the next active player
+    public void advanceToNextPlayer() {
+        List<Player> activePlayers = getActivePlayers();
+        
+        if (activePlayers.size() <= 1) {
+            // Only one player left -> End hand
+            endHand();
+            return;
+        }
+        
+        int currentIndex = activePlayers.indexOf(currentPlayer);
+        int nextIndex = (currentIndex + 1) % activePlayers.size();
+        currentPlayer = activePlayers.get(nextIndex);
+        
+        currentPlayer = activePlayers.get(nextIndex);
+
+        //Print who is acting
+        System.out.println("\n" + currentPlayer.getName() + "'s turn...");
+
+        if (!currentPlayer.isHuman()) {
+            try {
+                Thread.sleep(1000);  //Delay for realism
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+
+            //Simulate AI action here
+            String action = ((AutoPlayer) currentPlayer).decideAction();
+            gameAction(action.toLowerCase());
+        } else {
+            //For human, do NOT auto-advance. Wait for GUI or console input.
+            System.out.println("Waiting for game action...");
+            //Game loop should now pause until GUI calls gameAction(...) with user input
+        }
+    }
+
+    // End hand logic (example stub)
+    public void endHand() {
+        // Determine winner, award pot, etc.
+    	evaluateHands();
+        distributePots();
+        System.out.println("Hand is over.");
+    }
+    
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
+
     //Setup the blinds, forcing bets so players can't just fold every time
     private void setupBlinds() {
         List<Player> players = table.getPlayers();
@@ -235,13 +331,61 @@ public class PokerGame {
         }
     }
     
+    //GameActions not including raise
+    public void gameAction(String action) {
+        System.out.println(currentPlayer.getName() + " chooses to " + action);
+
+        switch (action) {
+            case "call":
+                betting.handleCall(currentPlayer);
+                break;
+            case "check":
+                betting.handleCheck(currentPlayer);
+                break;
+            case "fold":
+                betting.handleFold(currentPlayer);
+                break;
+            case "allin":
+                betting.handleAllIn(currentPlayer);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown action: " + action);
+        }
+        
+        if (shouldEndGame()) {
+            endHand();
+        } else {
+            advanceToNextPlayer();
+        }
+    }
+
+    //GameAction including raise
+    public void gameActionRaising(String action, int raiseAmount) {
+        System.out.println(currentPlayer.getName() + " chooses to " + action + " $" + raiseAmount);
+
+        switch (action) {
+            case "raise":
+            	betting.handleRaise(currentPlayer, raiseAmount);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown action: " + action);
+        }
+        
+        if (shouldEndGame()) {
+            endHand();
+        } else {
+            advanceToNextPlayer();
+        }
+    }
+    
+    
     //Checks if only one player remains in the round (all others have folded)
     private boolean shouldEndGame() {
         int activePlayers = 0;
         List<Player> players = table.getPlayers();
 
         for (Player player : players) {
-            if (!player.isFolded() && (player.getMoney() <= 0)) {
+            if (!player.isFolded() && (player.getMoney() > 0)) {
                 activePlayers++;
             }
         }
