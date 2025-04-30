@@ -11,6 +11,8 @@ public class GameUI extends JFrame {
 
     private static final int BUTTON_WIDTH = 100;
     private static final int BUTTON_HEIGHT = 100;
+    private static final int FRAME_WIDTH = 800;
+    private static final int FRAME_HEIGHT = 500;
 
     public GameUI() {
         super("Texas Hold 'Em");
@@ -19,9 +21,12 @@ public class GameUI extends JFrame {
         this.getContentPane().setBackground(Color.GREEN);
 
         // Panels
-        JPanel gamePanel = new JPanel();
+        JLayeredPane gamePanel = new JLayeredPane();
+        gamePanel.setLayout(null);
+        
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
+        
         JPanel headerPanel = new JPanel();
         headerPanel.setOpaque(false);
 
@@ -56,10 +61,16 @@ public class GameUI extends JFrame {
         this.add(gamePanel, BorderLayout.CENTER);
         this.add(buttonPanel, BorderLayout.SOUTH);
         
+        ImagePanel floor = new ImagePanel("/assets/Floor.jpg", 0, 0, 800, 600);
         ImagePanel table = new ImagePanel("/assets/Table.png", 40, -125, 700, 550);
-        table.setPreferredSize(new Dimension(800, 500)); // Optional
 
-        gamePanel.add(table);
+        //Set their bounds (x, y, width, height)
+        floor.setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+        table.setBounds(0, 0, 800, 400); // Even though it's offset internally, bounds should match canvas
+
+        // Add to layers
+        gamePanel.add(floor, Integer.valueOf(0)); // Bottom layer
+        gamePanel.add(table, Integer.valueOf(1)); 
         
         // Start button logic
         startButton.addActionListener(new ActionListener() {
@@ -77,7 +88,7 @@ public class GameUI extends JFrame {
         });
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(800, 500);
+        this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         this.setVisible(true);
     }
 }

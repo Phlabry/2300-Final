@@ -18,7 +18,8 @@ public class ImagePanel extends JPanel {
     	this.y = y;
     	this.width = width;
     	this.height = height;
-    	
+    	this.setOpaque(false);
+
         try {
             image = ImageIO.read(getClass().getResourceAsStream(url));
         } catch (IOException e) {
