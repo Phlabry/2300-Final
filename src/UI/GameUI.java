@@ -3,6 +3,9 @@ package UI;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.io.*;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
 public class GameUI extends JFrame {
 
@@ -45,14 +48,19 @@ public class GameUI extends JFrame {
 
         JButton allIn = new JButton("All In");
         allIn.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-
+                
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.add(startButton);
-
+        
         this.add(headerPanel, BorderLayout.NORTH);
         this.add(gamePanel, BorderLayout.CENTER);
         this.add(buttonPanel, BorderLayout.SOUTH);
+        
+        ImagePanel table = new ImagePanel("/assets/Table.png", 40, -125, 700, 550);
+        table.setPreferredSize(new Dimension(800, 500)); // Optional
 
+        gamePanel.add(table);
+        
         // Start button logic
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

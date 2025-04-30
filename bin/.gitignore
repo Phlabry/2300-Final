@@ -1,2 +1,10 @@
+/module-info.class
+/.DS_Store
+/.classpath
+/.gitignore
+/.project
+/Main/
 /Mechanics/
+/Model/
+/UI/
 /Utilities/
