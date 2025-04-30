@@ -15,6 +15,8 @@ public class GameUI extends JFrame {
 
     private PokerGame pokerGame;
     private Player currentPlayer;
+    private boolean hasActed = false;
+
     private JPanel gamePanel;
     private JPanel buttonPanel;
     private JPanel headerPanel;
@@ -98,33 +100,36 @@ public class GameUI extends JFrame {
                 buttonPanel.add(mediumButton);
                 buttonPanel.add(hardButton);
                 
-                buttonPanel.revalidate();
-                buttonPanel.repaint();
+                updateUI();
             }
         });
 
         easyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+            	addActionButtons();
                 startPokerGameWithDifficulty(1000); //$1000 starting
             }
         });
 
         mediumButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+            	addActionButtons();
                 startPokerGameWithDifficulty(5000); //$5000 starting
             }
         });
 
         hardButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+            	addActionButtons();
                 startPokerGameWithDifficulty(10000); //$10000 starting
             }
         });
         
+        
         //Button actions to interact with the game
         call.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	if (currentPlayer.isHuman()) {
+                if (currentPlayer.isHuman()) {
                     System.out.println("Call button clicked\n");
                     pokerGame.gameAction("call");
                     checkGameState();
@@ -134,7 +139,7 @@ public class GameUI extends JFrame {
 
         check.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	if (currentPlayer.isHuman()) {
+                if (currentPlayer.isHuman()) {
                     System.out.println("Check button clicked\n");
                     pokerGame.gameAction("check");
                     checkGameState();
@@ -144,7 +149,7 @@ public class GameUI extends JFrame {
 
         fold.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	if (currentPlayer.isHuman()) {
+                if (currentPlayer.isHuman()) {
                     System.out.println("Fold button clicked\n");
                     pokerGame.gameAction("fold");
                     checkGameState();
@@ -154,7 +159,7 @@ public class GameUI extends JFrame {
 
         raise.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	if (currentPlayer.isHuman()) {
+                if (currentPlayer.isHuman()) {
                     System.out.println("Raise button clicked");
                     String raiseAmount = JOptionPane.showInputDialog("Enter raise amount:");
                     try {
@@ -170,7 +175,7 @@ public class GameUI extends JFrame {
 
         allIn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	if (currentPlayer.isHuman()) {
+                if (currentPlayer.isHuman()) {
                     System.out.println("All In button clicked\n");
                     pokerGame.gameAction("allin");
                     checkGameState();
@@ -184,8 +189,8 @@ public class GameUI extends JFrame {
         this.setVisible(true);
     }
     
-    //Setup game actions buttons
-    private void setupGameActionButtons() {
+    //Add game actions buttons
+    private void addActionButtons() {
         buttonPanel.removeAll();
         buttonPanel.add(call);
         buttonPanel.add(check);
@@ -193,8 +198,25 @@ public class GameUI extends JFrame {
         buttonPanel.add(raise);
         buttonPanel.add(allIn);
 
-        buttonPanel.revalidate();
-        buttonPanel.repaint();
+        updateUI();
+    }
+    
+    private void disableActionButtons() {
+        call.setEnabled(false);
+        check.setEnabled(false);
+        fold.setEnabled(false);
+        raise.setEnabled(false);
+        allIn.setEnabled(false);
+        updateUI();
+    }
+
+    private void enableActionButtons() {
+        call.setEnabled(true);
+        check.setEnabled(true);
+        fold.setEnabled(true);
+        raise.setEnabled(true);
+        allIn.setEnabled(true);
+        updateUI();
     }
 
     // Check game state after an action and manage AI actions
@@ -203,14 +225,16 @@ public class GameUI extends JFrame {
         currentPlayer = pokerGame.getCurrentPlayer();
         updateUI();
         
-        // Process AI moves if it's not human's turn
-        if (currentPlayer != null && !currentPlayer.isHuman()) {
-            simulateAIActions();
-        }
         
-        // Check if betting round is complete
+        if (!currentPlayer.isHuman()) {
+            simulateAIActions();  
+        }
+
+        
+        //Check if betting round is complete
         if (pokerGame.isBettingRoundComplete()) {
             statusLabel.setText("Betting round complete. Advancing phase...");
+            updateUI();
             // Slight delay before advancing phase for visual feedback
             try {
                 Thread.sleep(1000);
@@ -218,35 +242,29 @@ public class GameUI extends JFrame {
                 e.printStackTrace();
             }
             pokerGame.advancePhase();
-            updateUI();
+            currentPlayer = pokerGame.getCurrentPlayer(); //Update player after advancing phase
+
+            if (!currentPlayer.isHuman()) {
+                simulateAIActions();
+            }
         }
     }
     
     private void simulateAIActions() {
         // Handle AI actions in sequence until it's the human's turn again
         while (!currentPlayer.isHuman()) {
-            statusLabel.setText(currentPlayer.getName() + " is thinking...");
-            updateUI();
-            
-            // Add a small delay for realistic AI "thinking"
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            
             // Let the AI decide and execute an action
             if (currentPlayer instanceof AutoPlayer) {
                 String action = ((AutoPlayer) currentPlayer).decideAction();
                 pokerGame.gameAction(action.toLowerCase());
                 
-                // Update current player after action
+                //Update current player after action
                 currentPlayer = pokerGame.getCurrentPlayer();
-                updateUI();
                 
                 // Check if betting round is complete after AI move
                 if (pokerGame.isBettingRoundComplete()) {
                     statusLabel.setText("Betting round complete. Advancing phase...");
+                    updateUI();
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
@@ -275,14 +293,11 @@ public class GameUI extends JFrame {
             players.add(new AutoPlayer("Bot " + (i + 1), startingMoney, false));
         }
 
-        pokerGame = new PokerGame(players); 
+        pokerGame = new PokerGame(players);         
+        //Setup action buttons and update UI
         pokerGame.startGame();
-        
-        // Setup action buttons and update UI
-        setupGameActionButtons();
-        updateUI();
         currentPlayer = pokerGame.getCurrentPlayer();
-        
+
         // If first player is AI, automatically handle their action
         if (!currentPlayer.isHuman()) {
             simulateAIActions();  //Automatically simulate AI actions if it's AI's turn
@@ -290,34 +305,6 @@ public class GameUI extends JFrame {
     }
     
     private void updateUI() {
-        if (pokerGame == null) return;
-        
-        // Clear game panel
-        gamePanel.removeAll();
-        
-        // Display community cards (to be implemented)
-        JPanel communityPanel = new JPanel();
-        communityPanel.setOpaque(false);
-        communityPanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(Color.WHITE), "Community Cards"));
-        gamePanel.add(communityPanel);
-        
-        // Display player information
-        if (currentPlayer != null) {
-            JPanel playerPanel = new JPanel();
-            playerPanel.setOpaque(false);
-            playerPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.WHITE), 
-                currentPlayer.getName() + " - $" + currentPlayer.getMoney()));
-            
-            //Will add player cards here
-            gamePanel.add(playerPanel);
-            
-            //Update status label
-            statusLabel.setText("Current player: " + currentPlayer.getName() + 
-                               (currentPlayer.isHuman() ? " (YOU)" : ""));
-        }
-        // Refresh UI
         gamePanel.revalidate();
         gamePanel.repaint();
     }

@@ -61,8 +61,8 @@ public class PokerGame {
         //Initialize deck, table, and reset everything
         this.deck.resetDeck();
         this.deck.shuffle();
-        this.resetStatus();
-        
+        resetActedStatus();   
+        resetFoldedStatus();
 
         System.out.println("\n--- Starting Round " + currentRound + " ---");
 
@@ -72,6 +72,7 @@ public class PokerGame {
         showHoleCards();
 
         //Set Current Player to Next player after players who did small/big blind
+        
         currentPlayer = table.getPlayers().get((currentRound + 1) % numPlayers); 
 
         //Start first betting round -> Next Player
@@ -88,6 +89,9 @@ public class PokerGame {
 
         //Start Second betting round -> Next Player
         betting.nextBettingRound(); 
+        resetActedStatus();   
+        int smallBlindIndex = (currentRound - 1) % numPlayers;
+        findFirstActivePlayerStartingFrom(smallBlindIndex);
     }
 
     //Called after second betting round is complete
@@ -97,6 +101,10 @@ public class PokerGame {
 
         //Start Third betting round -> Next Player
         betting.nextBettingRound(); 
+        resetActedStatus();   
+        
+        int smallBlindIndex = (currentRound - 1) % numPlayers;
+        findFirstActivePlayerStartingFrom(smallBlindIndex);
     }
 
     //Called after third betting round is complete
@@ -106,6 +114,9 @@ public class PokerGame {
 
         //Start Last betting round -> Next Player
         betting.nextBettingRound(); 
+        resetActedStatus();   
+        int smallBlindIndex = (currentRound - 1) % numPlayers;
+        findFirstActivePlayerStartingFrom(smallBlindIndex);
     } 
     
     //Called after Last Betting round is complete
@@ -133,9 +144,39 @@ public class PokerGame {
         }
         return active;
     }
-
+    
+    private void findFirstActivePlayerStartingFrom(int startIndex) {
+        List<Player> allPlayers = table.getPlayers();
+        
+        // Loop through the players, starting at the specified index
+        int index = startIndex;
+        int loopCount = 0;
+        
+        while (loopCount < allPlayers.size()) {
+            Player candidate = allPlayers.get(index);
+            if (!candidate.isFolded() && candidate.getMoney() > 0) {
+                currentPlayer = candidate;
+                return;
+            }
+            index = (index + 1) % allPlayers.size();
+            loopCount++;
+        }
+        
+        // Fallback - just get any active player if we can't find one starting from the intended position
+        for (Player player : allPlayers) {
+            if (!player.isFolded() && player.getMoney() > 0) {
+                currentPlayer = player;
+                return;
+            }
+        }
+        
+        // If no active players at all, this is a serious issue
+        System.out.println("WARNING: No active players found!");
+    }
+    
     //Advance turn to the next active player
     public void advanceToNextPlayer() {
+    	List<Player> allPlayers = table.getPlayers();
         List<Player> activePlayers = getActivePlayers();
         
         if (activePlayers.size() <= 1) {
@@ -144,9 +185,34 @@ public class PokerGame {
             return;
         }
         
-        int currentIndex = activePlayers.indexOf(currentPlayer);
-        int nextIndex = (currentIndex + 1) % activePlayers.size();
-        currentPlayer = activePlayers.get(nextIndex);
+        if (betting.isBettingRoundComplete()) { 
+            return;
+        }
+        
+        if (currentPlayer == null) {
+            currentPlayer = activePlayers.get(0);
+        } else {
+            // Find the current player's position in the ORIGINAL player list
+            int currentOriginalIndex = allPlayers.indexOf(currentPlayer);
+            
+            // Find the next active player in the ORIGINAL order
+            Player nextPlayer = null;
+            int index = (currentOriginalIndex + 1) % allPlayers.size();
+            
+            // Loop through the original player list until we find an active player
+            int loopCount = 0;
+            while (loopCount < allPlayers.size()) {
+                Player candidate = allPlayers.get(index);
+                if (!candidate.isFolded() && candidate.getMoney() > 0) {
+                    nextPlayer = candidate;
+                    break;
+                }
+                index = (index + 1) % allPlayers.size();
+                loopCount++;
+            }
+            
+            currentPlayer = nextPlayer != null ? nextPlayer : activePlayers.get(0);
+        }
       
         //Print who is acting
         System.out.println(currentPlayer.getName() + "'s turn...");
@@ -232,7 +298,7 @@ public class PokerGame {
                 }
                 System.out.println(); 
             } else {
-                System.out.println(player.getName() + " has folded.");
+                System.out.println(player.getName() + " has folded.\n");
             }
         }
     }
@@ -328,11 +394,18 @@ public class PokerGame {
         betting.getPots().clear();
     }
     
-    //Resets the status of all players at the beginning of a new round
-    private void resetStatus() {
+    //Resets the folded status of all players
+    private void resetFoldedStatus() {
         List<Player> players = table.getPlayers();
         for (Player player : players) {
             player.setFolded(false); //Mark player as active again
+        }
+    }
+    
+    //Resets the Acted status of all players
+    private void resetActedStatus() {
+        List<Player> players = table.getPlayers();
+        for (Player player : players) {
             player.setHasActed(false); //Marks player as haven't acted yet
         }
     }
