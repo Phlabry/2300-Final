@@ -364,7 +364,7 @@ public class PokerGame {
 
         //Iterate over each pot and distribute to the winner
         for (Pot pot : pots) {
-            Set<Player> contenders = pot.getContenders();
+            Set<Player> contenders = pot.getEligiblePlayers();
             List<Player> winners = determineWinners(new ArrayList<>(contenders));
             int potAmount = pot.getAmount();
             int share = pot.getAmount() / winners.size();
@@ -435,6 +435,7 @@ public class PokerGame {
                 throw new IllegalArgumentException("Unknown action: " + action);
         }
         
+        System.out.println(currentPlayer.getName() + " now has $" + currentPlayer.getMoney());
         currentPlayer.setHasActed(true); //Mark player as having acted in this round.
         
         if (shouldEndGame()) {
@@ -460,6 +461,9 @@ public class PokerGame {
             default:
                 throw new IllegalArgumentException("Unknown action: " + action);
         }
+        
+        System.out.println(currentPlayer.getName() + " now has $" + currentPlayer.getMoney());
+        currentPlayer.setHasActed(true); //Mark player as having acted in this round.
         
         if (shouldEndGame()) {
             endHand();

@@ -72,10 +72,9 @@ public class Betting
             }
 
             int playerBet = playerBets.getOrDefault(player, 0);
-            int playerMoney = player.getMoney();
 
             // If they are not all-in, they must match the highest bet
-            if (playerMoney > 0 && playerBet < highestBet) {
+            if (player.getMoney() > 0 && playerBet < highestBet) {
                 return false;
             }
         }
@@ -85,6 +84,7 @@ public class Betting
     public void createInitialPot(int smallBlindAmount, int bigBlindAmount, int leftoverRollover) {
         //Update the blind amount in the Betting class
     	this.baseBet = bigBlindAmount;
+        this.highestBet = bigBlindAmount;
     	this.totalPotAmount = 0;
 
         //Calculate total pot with small and big blinds
@@ -104,6 +104,8 @@ public class Betting
     private void updateBets(Player player, int amount) {
         int current = playerBets.getOrDefault(player, 0);
         playerBets.put(player, current + amount);
+        
+        player.setMoney(player.getMoney() - amount);
         System.out.println(player.getName() + " has bet $" + (current + amount) + " (total)");
 
         //Update the total pot amount every time a bet is placed
@@ -121,8 +123,12 @@ public class Betting
         }
 
         
+     // Create a temp list for new pots this round
+        List<Pot> newPots = new ArrayList<>();
+
+        // Keep creating pots until all bets are processed
         while (true) {
-            //Find the smallest bet > 0
+            // Find the smallest bet > 0
             int minBet = Integer.MAX_VALUE;
             for (Player player : activePlayers) {
                 int bet = remainingBets.getOrDefault(player, 0);
@@ -132,10 +138,10 @@ public class Betting
             }
 
             if (minBet == Integer.MAX_VALUE || minBet == 0) {
-                break; //No more bets left
+                break; // No more bets left
             }
 
-            //Create a pot with all players who have bet > 0
+            // Create a pot with all players who have bet > 0
             Set<Player> potContenders = new HashSet<>();
             int potAmount = 0;
 
@@ -148,16 +154,50 @@ public class Betting
                 }
             }
 
-            pots.add(new Pot(potAmount, potContenders));
+            newPots.add(new Pot(potAmount, potContenders));
             System.out.println("Pot created: $" + potAmount + " with " + potContenders.size() + " players.");
         }
 
-        System.out.println("Total pots created: " + pots.size() + "\n");    
-        playerBets.clear(); //Reset for next betting round
+        // Add new pots to existing pots list
+        if (newPots.size() > 0) {
+            // Check if we need to merge with an existing main pot
+            if (!pots.isEmpty() && newPots.size() > 0) {
+                // Try to merge pots with identical player sets
+                for (int i = 0; i < newPots.size(); i++) {
+                    boolean merged = false;
+                    Pot newPot = newPots.get(i);
+                    
+                    for (int j = 0; j < pots.size(); j++) {
+                        Pot existingPot = pots.get(j);
+                        // If player sets are identical, merge the pots
+                        if (existingPot.getEligiblePlayers().equals(newPot.getEligiblePlayers())) {
+                            existingPot.addAmount(newPot.getAmount());
+                            merged = true;
+                            break;
+                        }
+                    }
+                    
+                    // If couldn't merge, add as a new pot
+                    if (!merged) {
+                        pots.add(newPot);
+                    }
+                }
+            } else {
+                // Just add all new pots if there were no existing pots
+                pots.addAll(newPots);
+            }
+        }
+        
+        // Clear player bets for next round
+        playerBets.clear();
+        
+        System.out.println("Total pots: " + pots.size() + "\n");
     }
+
 
     public void handleCheck(Player player) {
         if (highestBet == baseBet) {
+            updateBets(player, highestBet);
             System.out.println(player.getName() + " checks.");
             playersActedThisRound.add(player);
         } else {
@@ -166,23 +206,52 @@ public class Betting
     }
 
     public void handleCall(Player player) {
-        if (player.getMoney() >= highestBet) {
-            updateBets(player, highestBet);
-            System.out.println(player.getName() + " calls with $" + highestBet);
+    	int currentBet = playerBets.getOrDefault(player, 0);
+        int amountToCall = highestBet - currentBet;
+        
+        if (amountToCall <= 0) {
+            System.out.println(player.getName() + " has already matched the highest bet.");
+            return;
+        }
+        
+        if (player.getMoney() >= amountToCall) {
+            updateBets(player, amountToCall);
+            System.out.println(player.getName() + " calls with $" + amountToCall);
             playersActedThisRound.add(player);
+        } else if (player.getMoney() > 0) {
+            // Player can only call with what they have (partial call, goes all-in)
+            handleAllIn(player);
         } else {
             System.out.println("Insufficient funds to call.");
         }
     }
 
     public void handleRaise(Player player, int raiseAmount) {
-        if (raiseAmount > highestBet) {
-            highestBet = raiseAmount;
-            updateBets(player, raiseAmount - highestBet);
-            System.out.println(player.getName() + " raises by $" + (raiseAmount - highestBet));
-            playersActedThisRound.add(player);
+    	int currentBet = playerBets.getOrDefault(player, 0);
+        int totalBetAmount = currentBet + raiseAmount;
+        
+        // Check if the raise would make a new highest bet
+        if (totalBetAmount <= highestBet) {
+            System.out.println("Raise amount must make your total bet higher than the current highest bet of $" + highestBet);
+            return;
+        }
+        
+        // Check if player has enough money
+        if (player.getMoney() >= raiseAmount) {
+            updateBets(player, raiseAmount);
+            highestBet = totalBetAmount;
+            System.out.println(player.getName() + " raises to $" + highestBet + " total");
+            
+            // Reset the players acted this round except the current player
+            // since everyone needs to respond to the raise
+            Player current = player;
+            playersActedThisRound.clear();
+            playersActedThisRound.add(current);
+        } else if (player.getMoney() > 0) {
+            // Player can't afford the full raise, go all-in instead
+            handleAllIn(player);
         } else {
-            System.out.println("Raise amount must be greater than the current highest bet.");
+            System.out.println("Insufficient funds to raise.");
         }
     }
 
@@ -193,10 +262,21 @@ public class Betting
     }
 
     public void handleAllIn(Player player) {
-        int allInAmount = player.getMoney();
-        highestBet = Math.max(highestBet, allInAmount);
+    	int allInAmount = player.getMoney();
+        int currentBet = playerBets.getOrDefault(player, 0);
+        int totalBet = currentBet + allInAmount;
+        
+        // Update highest bet if this all-in is higher
+        if (totalBet > highestBet) {
+            highestBet = totalBet;
+            // Reset player actions as everyone needs to respond to the new highest bet
+            Player current = player;
+            playersActedThisRound.clear();
+            playersActedThisRound.add(current);
+        }
+        
         updateBets(player, allInAmount);
-        System.out.println(player.getName() + " goes all-in with $" + allInAmount);
+        System.out.println(player.getName() + " goes all-in with $" + allInAmount + " more (total bet: $" + totalBet + ")");
         playersActedThisRound.add(player);
     }
 
@@ -204,7 +284,14 @@ public class Betting
         return pots;
     }
 
-
+    public int getTotalPotAmount() {
+        return totalPotAmount;
+    }
+    
+    public int getHighestBet() {
+        return highestBet;
+    }
+    
     public enum BettingAction {
         CHECK,    
         CALL,   

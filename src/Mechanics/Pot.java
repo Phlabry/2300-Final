@@ -5,22 +5,22 @@ import java.util.Set;
 
 public class Pot {
     private int amount;
-    private Set<Player> contenders;
+    private Set<Player> eligiblePlayers;
 
-    public Pot(int amount, Set<Player> contenders) {
+    public Pot(int amount, Set<Player> eligiblePlayers) {
         this.amount = amount;
-        this.contenders = contenders;
+        this.eligiblePlayers = eligiblePlayers;
     }
 
     public int getAmount() {
         return amount;
     }
 
-    public Set<Player> getContenders() {
-        return contenders;
+    public Set<Player> getEligiblePlayers() {
+        return eligiblePlayers;
     }
 
-    public void addToAmount(int extra) {
+    public void addAmount(int extra) {
         this.amount += extra;
     }
 
@@ -28,12 +28,12 @@ public class Pot {
         this.amount = amount;
     }
 
-    public void setContenders(Set<Player> contenders) {
-        this.contenders = contenders;
+    public void setEligiblePlayers(Set<Player> eligiblePlayers) {
+        this.eligiblePlayers = eligiblePlayers;
     }
     
     @Override
     public String toString() {
-    	return "Pot of $" + amount + " between " + contenders;
+    	return "Pot of $" + amount + " between " + eligiblePlayers;
     }
 }
