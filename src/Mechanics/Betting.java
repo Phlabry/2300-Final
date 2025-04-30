@@ -35,13 +35,11 @@ public class Betting
         for (Player player : players) {
             if (player.isFolded()) continue;
             if (player.getMoney() == 0 && highestBet > 0) {
-                System.out.println(player.getName() + " is out of money and cannot continue in this betting round.");
+                System.out.println(player.getName() + " is out of money and cannot continue in this betting round. \n");
                 continue;
             }
-            
-            boolean validActionTaken = false;
         }
-        System.out.println("\nTotal Pot: $" + totalPotAmount);
+        System.out.println("Total Pot: $" + totalPotAmount);
 
         //Check if only one active player remains (others folded)
         List<Player> activePlayers = new ArrayList<>();
@@ -154,7 +152,7 @@ public class Betting
             System.out.println("Pot created: $" + potAmount + " with " + potContenders.size() + " players.");
         }
 
-        System.out.println("Total pots created: " + pots.size());    
+        System.out.println("Total pots created: " + pots.size() + "\n");    
         playerBets.clear(); //Reset for next betting round
     }
 

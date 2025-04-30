@@ -7,6 +7,7 @@ public class PokerGame {
     private Deck deck;
     private Table table;
     private Betting betting;
+    private int numPlayers;
     private Player currentPlayer;
     private int currentRound;
     private int leftoverRollover;
@@ -17,6 +18,7 @@ public class PokerGame {
         this.deck = new Deck();
         this.table = new Table();
         this.betting = new Betting(players);
+        this.numPlayers = players.size();
         this.currentPlayer = null;
         this.currentRound = 1;
         //0 = preflop, 1 = flop, 2 = turn, 3 = river, 4 = showdown
@@ -44,6 +46,10 @@ public class PokerGame {
                 break;
         }
         if (phase < 3) {
+            List<Player> activePlayers = getActivePlayers();
+            for (Player player : activePlayers) {
+            	player.setHasActed(false);
+            }
             phase++;
         } else {
             phase = 0;
@@ -56,6 +62,7 @@ public class PokerGame {
         this.deck.resetDeck();
         this.deck.shuffle();
         this.resetStatus();
+        
 
         System.out.println("\n--- Starting Round " + currentRound + " ---");
 
@@ -64,11 +71,11 @@ public class PokerGame {
         dealHoleCards();
         showHoleCards();
 
-        //Set Current Player to Human Player
-        currentPlayer = table.getPlayers().get(0); 
+        //Set Current Player to Next player after players who did small/big blind
+        currentPlayer = table.getPlayers().get((currentRound + 1) % numPlayers); 
 
-        //Start first betting round
-        betting.startBettingRound();  
+        //Start first betting round -> Next Player
+        betting.startBettingRound();
     }
 
     
@@ -79,8 +86,8 @@ public class PokerGame {
         }
         showHoleCards();
 
-        //Start Second betting round
-        betting.nextBettingRound();  
+        //Start Second betting round -> Next Player
+        betting.nextBettingRound(); 
     }
 
     //Called after second betting round is complete
@@ -88,8 +95,8 @@ public class PokerGame {
         dealCommunityCard();
         showHoleCards();
 
-        //Start Third betting round
-        betting.nextBettingRound();  
+        //Start Third betting round -> Next Player
+        betting.nextBettingRound(); 
     }
 
     //Called after third betting round is complete
@@ -97,7 +104,7 @@ public class PokerGame {
         dealCommunityCard();
         showHoleCards();
 
-        //Start Last betting round
+        //Start Last betting round -> Next Player
         betting.nextBettingRound(); 
     } 
     
@@ -108,7 +115,8 @@ public class PokerGame {
         distributePots();
 
         currentRound++;
-        System.out.println("Round " + (currentRound - 1) + " complete.");
+        System.out.println("Round " + (currentRound - 1) + " Over.\n");
+        startGame();
     }
 
     public boolean isBettingRoundComplete() {
@@ -139,11 +147,9 @@ public class PokerGame {
         int currentIndex = activePlayers.indexOf(currentPlayer);
         int nextIndex = (currentIndex + 1) % activePlayers.size();
         currentPlayer = activePlayers.get(nextIndex);
-        
-        currentPlayer = activePlayers.get(nextIndex);
-
+      
         //Print who is acting
-        System.out.println("\n" + currentPlayer.getName() + "'s turn...");
+        System.out.println(currentPlayer.getName() + "'s turn...");
 
         if (!currentPlayer.isHuman()) {
             try {
@@ -177,7 +183,6 @@ public class PokerGame {
     //Setup the blinds, forcing bets so players can't just fold every time
     private void setupBlinds() {
         List<Player> players = table.getPlayers();
-        int numPlayers = players.size();
 
         //Calculate positions of small blind and big blind based on the round number
         int smallBlindIndex = (currentRound - 1) % numPlayers;  //Small blind: (round - 1) % number of players
@@ -197,7 +202,7 @@ public class PokerGame {
 
         //Print the blinds for debugging purposes
         System.out.println(smallBlindPlayer.getName() + " posts small blind: $" + smallBlindAmount);
-        System.out.println(bigBlindPlayer.getName() + " posts big blind: $" + bigBlindAmount + "\n");
+        System.out.println(bigBlindPlayer.getName() + " posts big blind: $" + bigBlindAmount);
         
         betting.createInitialPot(smallBlindAmount, bigBlindAmount, leftoverRollover);
     }
@@ -323,16 +328,21 @@ public class PokerGame {
         betting.getPots().clear();
     }
     
-    //Resets the folded status of all players at the beginning of a new round
+    //Resets the status of all players at the beginning of a new round
     private void resetStatus() {
         List<Player> players = table.getPlayers();
         for (Player player : players) {
-            player.setFolded(false); // Mark player as active again
+            player.setFolded(false); //Mark player as active again
+            player.setHasActed(false); //Marks player as haven't acted yet
         }
     }
     
     //GameActions not including raise
     public void gameAction(String action) {
+    	if (currentPlayer.hasActed()) {
+            return; // Skip the action if the player already acted.
+        }
+    	
         System.out.println(currentPlayer.getName() + " chooses to " + action);
 
         switch (action) {
@@ -352,15 +362,22 @@ public class PokerGame {
                 throw new IllegalArgumentException("Unknown action: " + action);
         }
         
+        currentPlayer.setHasActed(true); //Mark player as having acted in this round.
+        
         if (shouldEndGame()) {
             endHand();
+        } else if (isBettingRoundComplete()) {
+            advancePhase(); // move to flop/turn/etc
         } else {
-            advanceToNextPlayer();
+            advanceToNextPlayer(); // only advance if round isn't done
         }
     }
 
     //GameAction including raise
     public void gameActionRaising(String action, int raiseAmount) {
+    	if (currentPlayer.hasActed()) {
+            return; // Skip the action if the player already acted.
+        }
         System.out.println(currentPlayer.getName() + " chooses to " + action + " $" + raiseAmount);
 
         switch (action) {
@@ -373,8 +390,10 @@ public class PokerGame {
         
         if (shouldEndGame()) {
             endHand();
+        } else if (isBettingRoundComplete()) {
+            advancePhase(); // move to flop/turn/etc
         } else {
-            advanceToNextPlayer();
+            advanceToNextPlayer(); // only advance if round isn't done
         }
     }
     

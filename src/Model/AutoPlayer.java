@@ -11,10 +11,10 @@ public class AutoPlayer extends Player {
     public String decideAction() {
     	int rand = new Random().nextInt(100); // 0 to 99
 
-        if (rand < 80) {
-            return "call"; // 80% chance
+        if (rand < 90) {
+            return "call"; //90% chance
         } else {
-            return "fold"; // 20% chance
+            return "fold"; //10% chance
         }
     }
 }

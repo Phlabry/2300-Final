@@ -124,8 +124,8 @@ public class GameUI extends JFrame {
         //Button actions to interact with the game
         call.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
-                    System.out.println("Call button clicked");
+            	if (currentPlayer.isHuman()) {
+                    System.out.println("Call button clicked\n");
                     pokerGame.gameAction("call");
                     checkGameState();
                 }
@@ -134,8 +134,8 @@ public class GameUI extends JFrame {
 
         check.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
-                    System.out.println("Check button clicked");
+            	if (currentPlayer.isHuman()) {
+                    System.out.println("Check button clicked\n");
                     pokerGame.gameAction("check");
                     checkGameState();
                 }
@@ -144,8 +144,8 @@ public class GameUI extends JFrame {
 
         fold.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
-                    System.out.println("Fold button clicked");
+            	if (currentPlayer.isHuman()) {
+                    System.out.println("Fold button clicked\n");
                     pokerGame.gameAction("fold");
                     checkGameState();
                 }
@@ -154,7 +154,7 @@ public class GameUI extends JFrame {
 
         raise.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
+            	if (currentPlayer.isHuman()) {
                     System.out.println("Raise button clicked");
                     String raiseAmount = JOptionPane.showInputDialog("Enter raise amount:");
                     try {
@@ -170,8 +170,8 @@ public class GameUI extends JFrame {
 
         allIn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (pokerGame != null && currentPlayer != null && currentPlayer.isHuman()) {
-                    System.out.println("All In button clicked");
+            	if (currentPlayer.isHuman()) {
+                    System.out.println("All In button clicked\n");
                     pokerGame.gameAction("allin");
                     checkGameState();
                 }
@@ -224,7 +224,7 @@ public class GameUI extends JFrame {
     
     private void simulateAIActions() {
         // Handle AI actions in sequence until it's the human's turn again
-        while (currentPlayer != null && !currentPlayer.isHuman()) {
+        while (!currentPlayer.isHuman()) {
             statusLabel.setText(currentPlayer.getName() + " is thinking...");
             updateUI();
             
@@ -238,7 +238,6 @@ public class GameUI extends JFrame {
             // Let the AI decide and execute an action
             if (currentPlayer instanceof AutoPlayer) {
                 String action = ((AutoPlayer) currentPlayer).decideAction();
-                System.out.println("AI choosing action: " + action);
                 pokerGame.gameAction(action.toLowerCase());
                 
                 // Update current player after action
@@ -270,7 +269,7 @@ public class GameUI extends JFrame {
         if (name == null || name.trim().isEmpty()) {
             name = "Player";  // Default name
         }
-        players.add(new Player(name, startingMoney, true));
+        players.add(new Player(name.trim(), startingMoney, true));
         
         for (int i = 0; i < numPlayers-1; i++) {
             players.add(new AutoPlayer("Bot " + (i + 1), startingMoney, false));
@@ -279,19 +278,13 @@ public class GameUI extends JFrame {
         pokerGame = new PokerGame(players); 
         pokerGame.startGame();
         
-        // Important: Get the current player after starting the game
-        currentPlayer = pokerGame.getCurrentPlayer();
-        if (currentPlayer == null) {
-            System.out.println("Error: currentPlayer is null after starting the game.");
-            return;  // Exit the method if currentPlayer is null
-        }
-        
         // Setup action buttons and update UI
         setupGameActionButtons();
         updateUI();
+        currentPlayer = pokerGame.getCurrentPlayer();
         
         // If first player is AI, automatically handle their action
-        if (currentPlayer != null && !currentPlayer.isHuman()) {
+        if (!currentPlayer.isHuman()) {
             simulateAIActions();  //Automatically simulate AI actions if it's AI's turn
         }
     }
