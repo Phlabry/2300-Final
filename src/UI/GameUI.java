@@ -12,12 +12,15 @@ public class GameUI extends JFrame {
 
     private static final int BUTTON_WIDTH = 100;
     private static final int BUTTON_HEIGHT = 100;
+    private static final int FRAME_WIDTH = 1920;
+    private static final int FRAME_HEIGHT = 1080;
+    private ImagePanel[] cpuIcons;
 
     private PokerGame pokerGame;
     private Player currentPlayer;
     private boolean hasActed = false;
 
-    private JPanel gamePanel;
+    private JLayeredPane gamePanel;
     private JPanel buttonPanel;
     private JPanel headerPanel;
     private JLabel statusLabel;
@@ -29,8 +32,10 @@ public class GameUI extends JFrame {
         this.setLayout(new BorderLayout());
         this.getContentPane().setBackground(Color.GREEN);
 
-        //Panels
-        gamePanel = new JPanel();
+        gamePanel = new JLayeredPane();
+        gamePanel.setLayout(null);
+
+
         
         buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
@@ -88,6 +93,38 @@ public class GameUI extends JFrame {
         this.add(headerPanel, BorderLayout.NORTH);
         this.add(gamePanel, BorderLayout.CENTER);
         this.add(buttonPanel, BorderLayout.SOUTH);
+        
+     // get images
+        ImagePanel floor = new ImagePanel("/assets/Floor.jpg", 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+        ImagePanel table = new ImagePanel("/assets/Table.png", 60, -100,  FRAME_WIDTH - 525, FRAME_HEIGHT - 250);
+        
+        //Set bounds (x, y, width, height)
+        floor.setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+        table.setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+
+        // Add to gamePanel
+        gamePanel.add(floor, Integer.valueOf(0)); // layering
+        gamePanel.add(table, Integer.valueOf(1));
+        
+        // add cpu Icons
+        this.cpuIcons = new ImagePanel[5];
+        for (int i=0; i<4; i++) {
+        	cpuIcons[i] = new ImagePanel("/assets/UserIcon.png", 100,100, 200, 200); // get cpu Icon
+            cpuIcons[i].setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);                  // set bound so doesn't go outside frame
+        }
+        
+        // setting icon positions and layering them
+        cpuIcons[0].setPosition(25, 0);
+        gamePanel.add(cpuIcons[0], Integer.valueOf(2));
+        
+        cpuIcons[1].setPosition(25, 450);
+        gamePanel.add(cpuIcons[1], Integer.valueOf(2));
+
+        cpuIcons[2].setPosition(1300, 450);
+        gamePanel.add(cpuIcons[2], Integer.valueOf(2));
+        
+        cpuIcons[3].setPosition(1300, 0);
+        gamePanel.add(cpuIcons[3], Integer.valueOf(2));
 
         //Start button logic -> Difficulty selection -> Start game
         startButton.addActionListener(new ActionListener() {
@@ -103,6 +140,10 @@ public class GameUI extends JFrame {
                 updateUI();
             }
         });
+        
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+        this.setVisible(true);
 
         easyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
