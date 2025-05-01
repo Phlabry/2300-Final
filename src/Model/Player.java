@@ -44,6 +44,7 @@ public class Player
 	public String getHandValue() {
         return HandValue;
     }
+	
     public void setHandValue(String HandValue) {
         this.HandValue = HandValue;
     }

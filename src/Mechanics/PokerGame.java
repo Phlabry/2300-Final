@@ -12,6 +12,7 @@ public class PokerGame {
     private int currentRound;
     private int leftoverRollover;
     private int phase;
+    private List<Card> communityCards;
 
     
     public PokerGame(List<Player> players) {
@@ -23,7 +24,8 @@ public class PokerGame {
         this.currentRound = 1;
         //0 = preflop, 1 = flop, 2 = turn, 3 = river, 4 = showdown
         this.phase = 0;
-        
+        this.communityCards = new ArrayList<>(); 
+
         for (Player player : players) {
             table.addPlayer(player);
         }
@@ -64,6 +66,9 @@ public class PokerGame {
         resetActedStatus();   
         resetFoldedStatus();
 
+        // Clear community cards at the start of a new game
+        this.communityCards.clear();
+        
         System.out.println("\n--- Starting Round " + currentRound + " ---");
 
         //Deal the blinds and deal hole cards and show hole cards to Human player
@@ -83,8 +88,10 @@ public class PokerGame {
     //Called by GUI after first betting round is complete
     public void continueToFlop() {
         for (int i = 0; i < 3; i++) {
-            dealCommunityCard();
+            Card card = deck.dealCard();
+            communityCards.add(card);
         }
+        showCommunityCard();
         showHoleCards();
 
         //Start Second betting round -> Next Player
@@ -96,7 +103,10 @@ public class PokerGame {
 
     //Called after second betting round is complete
     public void continueToTurn() {
-        dealCommunityCard();
+    	Card card = deck.dealCard();
+        communityCards.add(card);
+        showCommunityCard();
+        
         showHoleCards();
 
         //Start Third betting round -> Next Player
@@ -109,7 +119,10 @@ public class PokerGame {
 
     //Called after third betting round is complete
     public void continueToRiver() {
-        dealCommunityCard();
+    	Card card = deck.dealCard();
+        communityCards.add(card);
+        showCommunityCard();
+        
         showHoleCards();
 
         //Start Last betting round -> Next Player
@@ -305,13 +318,15 @@ public class PokerGame {
         }
     }
 
-    // Deals a single community card to all players (adds it to each player's hand)
-    private void dealCommunityCard() {
-        Card communityCard = deck.dealCard();    // Draw a card from the deck
-        List<Player> players = table.getPlayers();
-        for (Player player : players) {
-            player.addCard(communityCard);       // Add the community card to the player's hand
+    //Deals a single community card to all players (adds it to each player's hand)
+    private void showCommunityCard() {
+        System.out.println("Community Cards:"); 
+
+        for (Card card : communityCards) {
+            System.out.println("  " + card); 
         }
+        System.out.println("\n"); 
+
     }
 
     // Evaluates each active (non-folded) player's hand and determines the winner
@@ -319,7 +334,11 @@ public class PokerGame {
         List<Player> players = table.getPlayers();
         for (Player player : players) {
             if (!player.isFolded()) {
-                HandStrength result = HandEvaluator.evaluateHandWithMax(player.getHand().getCards());
+            	List<Card> combined = new ArrayList<>();
+            	combined.addAll(player.getHand().getCards());  //only 2 cards
+            	combined.addAll(communityCards);         //5 shared cards
+
+                HandStrength result = HandEvaluator.evaluateHandWithMax(combined);
                 player.setHandValue(result.getHandValue());
                 player.setHighCard(result.getHighCard());
                 System.out.println(player.getName() + " evaluates hand: " + player.getHandValue() + " (High Card:" + player.getHighCard()+ ")");
@@ -335,7 +354,7 @@ public class PokerGame {
 
         for (Player player : players) {
             if (player.isFolded()) continue;
-
+            
             int currentHandValue = HandEvaluator.handValue(player.getHandValue());
             Card.Rank currentHighCard = player.getHighCard();
 
@@ -479,6 +498,20 @@ public class PokerGame {
         } else {
             advanceToNextPlayer(); // only advance if round isn't done
         }
+    }
+    
+    public List<Card> getCommunityCards() {
+        return communityCards; // Assuming you have a field named communityCards
+    }
+    
+    
+    public List<Player> getPlayers() {
+        return table.getPlayers();
+    }
+    
+    
+    public boolean isShowdown() {
+        return phase == 4; // Assuming you have an enum GamePhase with SHOWDOWN
     }
     
     
