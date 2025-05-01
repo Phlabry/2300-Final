@@ -137,7 +137,15 @@ public class PokerGame {
         //No more betting rounds -> Evaluate and finish
         evaluateHands();
         distributePots();
+        
+        //Delay to see winner
+        try {
+            Thread.sleep(7000);
+        } catch (InterruptedException e) {
+            e.printStackTrace(); // or handle it some other way
+        }
 
+        
         currentRound++;
         System.out.println("Round " + (currentRound - 1) + " Over.\n");
         startGame();
@@ -232,7 +240,7 @@ public class PokerGame {
 
         if (!currentPlayer.isHuman()) {
             try {
-                Thread.sleep(1000);  //Delay for realism
+                Thread.sleep(2500);  //Delay for realism
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

@@ -294,7 +294,8 @@ public class GameUI extends JFrame {
             playerCardsPanel[i] = new JPanel();
             playerCardsPanel[i].setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
             playerCardsPanel[i].setBackground(new Color(0, 0, 0, 0)); // Transparent background
-            
+            playerCardsPanel[i].setSize(FRAME_WIDTH, FRAME_HEIGHT);
+
             playerLabels[i] = new JLabel("Player " + (i+1));
             playerLabels[i].setForeground(Color.WHITE);
             playerLabels[i].setFont(new Font("Arial", Font.BOLD, 14));
