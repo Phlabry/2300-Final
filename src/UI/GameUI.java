@@ -148,7 +148,7 @@ public class GameUI extends JFrame {
         easyButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
             	addActionButtons();
-                startPokerGameWithDifficulty(1000); //$1000 starting
+                startPokerGameWithDifficulty(10000); //$10000 starting
             }
         });
 
@@ -162,7 +162,7 @@ public class GameUI extends JFrame {
         hardButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
             	addActionButtons();
-                startPokerGameWithDifficulty(10000); //$10000 starting
+                startPokerGameWithDifficulty(1000); //$1000 starting
             }
         });
         

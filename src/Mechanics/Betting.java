@@ -63,7 +63,7 @@ public class Betting
 
     
     public boolean isBettingRoundComplete() {
-        for (Player player : players) {
+    	for (Player player : players) {
             if (player.isFolded()) continue;
 
             // If player hasn't acted this round, round is not complete
@@ -81,6 +81,14 @@ public class Betting
         return true;
     }
 
+    void resetHasActedForOthers(Player except) {
+        for (Player p : players) {
+            if (!p.equals(except)) {
+                p.setHasActed(false);
+            }
+        }
+    }
+    
     public void createInitialPot(int smallBlindAmount, int bigBlindAmount, int leftoverRollover) {
         //Update the blind amount in the Betting class
     	this.baseBet = bigBlindAmount;
@@ -197,7 +205,6 @@ public class Betting
 
     public void handleCheck(Player player) {
         if (highestBet == baseBet) {
-            updateBets(player, highestBet);
             System.out.println(player.getName() + " checks.");
             playersActedThisRound.add(player);
         } else {
@@ -211,6 +218,7 @@ public class Betting
         
         if (amountToCall <= 0) {
             System.out.println(player.getName() + " has already matched the highest bet.");
+            playersActedThisRound.add(player);
             return;
         }
         
@@ -221,6 +229,7 @@ public class Betting
         } else if (player.getMoney() > 0) {
             // Player can only call with what they have (partial call, goes all-in)
             handleAllIn(player);
+            playersActedThisRound.add(player);
         } else {
             System.out.println("Insufficient funds to call.");
         }
@@ -241,12 +250,7 @@ public class Betting
             updateBets(player, raiseAmount);
             highestBet = totalBetAmount;
             System.out.println(player.getName() + " raises to $" + highestBet + " total");
-            
-            // Reset the players acted this round except the current player
-            // since everyone needs to respond to the raise
-            Player current = player;
-            playersActedThisRound.clear();
-            playersActedThisRound.add(current);
+            playersActedThisRound.add(player);
         } else if (player.getMoney() > 0) {
             // Player can't afford the full raise, go all-in instead
             handleAllIn(player);
@@ -266,18 +270,19 @@ public class Betting
         int currentBet = playerBets.getOrDefault(player, 0);
         int totalBet = currentBet + allInAmount;
         
+        updateBets(player, allInAmount);
+
         // Update highest bet if this all-in is higher
         if (totalBet > highestBet) {
             highestBet = totalBet;
-            // Reset player actions as everyone needs to respond to the new highest bet
-            Player current = player;
-            playersActedThisRound.clear();
-            playersActedThisRound.add(current);
+            for (Player p : players) {
+                if (!p.isFolded() && p.getMoney() > 0 && p != player) {
+                    playersActedThisRound.remove(p);
+                }
+            }
         }
-        
-        updateBets(player, allInAmount);
-        System.out.println(player.getName() + " goes all-in with $" + allInAmount + " more (total bet: $" + totalBet + ")");
         playersActedThisRound.add(player);
+        System.out.println(player.getName() + " goes all-in with $" + allInAmount + " more (total bet: $" + totalBet + ")");
     }
 
     public List<Pot> getPots() {

@@ -239,7 +239,9 @@ public class PokerGame {
         // Determine winner, award pot, etc.
     	evaluateHands();
         distributePots();
-        System.out.println("Hand is over.");
+        System.out.println("Hand is over. \n");
+        currentRound++;
+        startGame();
     }
     
     public Player getCurrentPlayer() {
@@ -430,6 +432,7 @@ public class PokerGame {
                 break;
             case "allin":
                 betting.handleAllIn(currentPlayer);
+                betting.resetHasActedForOthers(currentPlayer);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown action: " + action);
@@ -442,9 +445,10 @@ public class PokerGame {
             endHand();
         } else if (isBettingRoundComplete()) {
             advancePhase(); // move to flop/turn/etc
-        } else {
-            advanceToNextPlayer(); // only advance if round isn't done
         }
+        
+        advanceToNextPlayer(); // only advance if round isn't done
+        
     }
 
     //GameAction including raise
@@ -463,7 +467,10 @@ public class PokerGame {
         }
         
         System.out.println(currentPlayer.getName() + " now has $" + currentPlayer.getMoney());
-        currentPlayer.setHasActed(true); //Mark player as having acted in this round.
+        
+        if(action.equals("call") || action.equals("check") || action.equals("fold")) {
+        	currentPlayer.setHasActed(true); //Mark player as having acted in this round.
+    	}
         
         if (shouldEndGame()) {
             endHand();
