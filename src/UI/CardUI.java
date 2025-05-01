@@ -1,16 +1,30 @@
 package UI;
-import Model.*;
-import Utilities.Constants;
 
-import java.awt.Graphics;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import javax.swing.JPanel;
 
-public class CardUI extends JPanel{
-	private BufferedImage image;
-	
-	    ImagePanel CardUI(Card card, int x, int y) {
-	    	return new ImagePanel(Constants.CARD_IMAGE_PATHS.get(card.toString()), x, y, 25, 40);
-	    }
-	    
+/** Draws one card; if hidden==true, shows common back. */
+public class CardUI extends JPanel {
+
+    private final BufferedImage face;
+    private final boolean hidden;
+    private static BufferedImage back;   // shared
+
+    public CardUI(BufferedImage face, boolean hidden) {
+        this.face   = face;
+        this.hidden = hidden;
+        setOpaque(false);
+    }
+
+    /** Called once from Constants after loading sprites. */
+    public static void setBackImage(BufferedImage b) { back = b; }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        BufferedImage img = hidden ? back : face;
+        if (img != null)
+            g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
+    }
 }
