@@ -11,8 +11,9 @@ public class GameUI extends JFrame {
 
     private static final int BUTTON_WIDTH = 100;
     private static final int BUTTON_HEIGHT = 100;
-    private static final int FRAME_WIDTH = 800;
-    private static final int FRAME_HEIGHT = 500;
+    private static final int FRAME_WIDTH = 1366;
+    private static final int FRAME_HEIGHT = 768;
+    private ImagePanel[] cpuIcons;
 
     public GameUI() {
         super("Texas Hold 'Em");
@@ -20,6 +21,7 @@ public class GameUI extends JFrame {
         this.setLayout(new BorderLayout());
         this.getContentPane().setBackground(Color.GREEN);
 
+        
         // Panels
         JLayeredPane gamePanel = new JLayeredPane();
         gamePanel.setLayout(null);
@@ -30,11 +32,13 @@ public class GameUI extends JFrame {
         JPanel headerPanel = new JPanel();
         headerPanel.setOpaque(false);
 
+        
         // Title
         JLabel title = new JLabel("Texas Hold 'Em");
         title.setFont(new Font("Arial", Font.BOLD, 24));
         headerPanel.add(title);
 
+        
         // Buttons
         JButton startButton = new JButton("Start New Game");
         startButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
@@ -53,24 +57,51 @@ public class GameUI extends JFrame {
 
         JButton allIn = new JButton("All In");
         allIn.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-                
+            
+        
+        // layout of buttons at bottom of screen
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.add(startButton);
         
+        
+        // position each panel
         this.add(headerPanel, BorderLayout.NORTH);
         this.add(gamePanel, BorderLayout.CENTER);
         this.add(buttonPanel, BorderLayout.SOUTH);
         
-        ImagePanel floor = new ImagePanel("/assets/Floor.jpg", 0, 0, 800, 600);
-        ImagePanel table = new ImagePanel("/assets/Table.png", 40, -125, 700, 550);
-
-        //Set their bounds (x, y, width, height)
+        // get images
+        ImagePanel floor = new ImagePanel("/assets/Floor.jpg", 0, 0, 1400, 800);
+        ImagePanel table = new ImagePanel("/assets/Table.png", -10, -220, 1350, 1000);
+        
+        //Set bounds (x, y, width, height)
         floor.setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-        table.setBounds(0, 0, 800, 400); // Even though it's offset internally, bounds should match canvas
+        table.setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
 
-        // Add to layers
-        gamePanel.add(floor, Integer.valueOf(0)); // Bottom layer
-        gamePanel.add(table, Integer.valueOf(1)); 
+        // Add to gamePanel
+        gamePanel.add(floor, Integer.valueOf(0)); // layering
+        gamePanel.add(table, Integer.valueOf(1));
+        
+        // add cpu Icons
+        this.cpuIcons = new ImagePanel[5];
+        for (int i=0; i<4; i++) {
+        	cpuIcons[i] = new ImagePanel("/assets/UserIcon.png", 100,100, 200, 200); // get cpu Icon
+            cpuIcons[i].setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);                  // set bound so doesn't go outside frame
+        }
+        
+        // setting icon positions and layering them
+        cpuIcons[0].setPosition(25, 25);
+        gamePanel.add(cpuIcons[0], Integer.valueOf(2));
+        
+        cpuIcons[1].setPosition(40, 350);
+        gamePanel.add(cpuIcons[1], Integer.valueOf(2));
+
+        cpuIcons[2].setPosition(1100, 350);
+        gamePanel.add(cpuIcons[2], Integer.valueOf(2));
+        
+        cpuIcons[3].setPosition(1120, 25);
+        gamePanel.add(cpuIcons[3], Integer.valueOf(2));
+
+        
         
         // Start button logic
         startButton.addActionListener(new ActionListener() {

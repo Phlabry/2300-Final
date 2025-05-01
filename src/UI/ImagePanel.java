@@ -13,19 +13,26 @@ public class ImagePanel extends JPanel {
 	private int width; 
 	private int height;
 
-    public ImagePanel(String url, int x, int y, int width, int height) {
+	// constructor
+    public ImagePanel(String path, int x, int y, int width, int height) {
     	this.x = x;
     	this.y = y;
     	this.width = width;
     	this.height = height;
-    	this.setOpaque(false);
+    	this.setOpaque(false);  // make background transparent
 
+    	// try catch for getting the image
         try {
-            image = ImageIO.read(getClass().getResourceAsStream(url));
+            image = ImageIO.read(getClass().getResourceAsStream(path)); 
         } catch (IOException e) {
-        	System.out.println("Failed to load " + url);
+        	System.out.println("Failed to load " + path);
             e.printStackTrace();
         }
+    }
+    
+    public void setPosition(int x, int y) {
+    	this.x = x;
+    	this.y = y;
     }
 
     @Override
