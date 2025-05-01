@@ -15,6 +15,8 @@ public class GameUI extends JFrame {
     private static final int FRAME_WIDTH = 1920;
     private static final int FRAME_HEIGHT = 1080;
     private ImagePanel[] cpuIcons;
+    private ImagePanel floor;
+    private ImagePanel table;
 
     private PokerGame pokerGame;
     private Player currentPlayer;
@@ -30,16 +32,19 @@ public class GameUI extends JFrame {
         super("Texas Hold 'Em");
 
         this.setLayout(new BorderLayout());
-        this.getContentPane().setBackground(Color.GREEN);
+        this.getContentPane().setBackground(Color.GREEN.darker());
 
+        //Initalize gamePanel and set layout to null
         gamePanel = new JLayeredPane();
         gamePanel.setLayout(null);
 
-
         
+        //Initalize buttonPanel and set opaque to false
         buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
         
+        
+        //Initalize headerPanel and set layout to boxLayout with opaque set to false
         headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setOpaque(false);
@@ -94,26 +99,26 @@ public class GameUI extends JFrame {
         this.add(gamePanel, BorderLayout.CENTER);
         this.add(buttonPanel, BorderLayout.SOUTH);
         
-     // get images
-        ImagePanel floor = new ImagePanel("/assets/Floor.jpg", 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-        ImagePanel table = new ImagePanel("/assets/Table.png", 60, -100,  FRAME_WIDTH - 525, FRAME_HEIGHT - 250);
+        //Get images
+        floor = new ImagePanel("/assets/Floor.jpg", 0, 0, FRAME_WIDTH, FRAME_HEIGHT);
+        table = new ImagePanel("/assets/Table.png", 60, -100, FRAME_WIDTH - 525, FRAME_HEIGHT - 250);
         
         //Set bounds (x, y, width, height)
         floor.setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
         table.setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
 
-        // Add to gamePanel
+        //Add to gamePanel
         gamePanel.add(floor, Integer.valueOf(0)); // layering
         gamePanel.add(table, Integer.valueOf(1));
         
-        // add cpu Icons
+        // Add cpu Icons
         this.cpuIcons = new ImagePanel[5];
         for (int i=0; i<4; i++) {
-        	cpuIcons[i] = new ImagePanel("/assets/UserIcon.png", 100,100, 200, 200); // get cpu Icon
+            cpuIcons[i] = new ImagePanel("/assets/UserIcon.png", 100, 100, 200, 200); // get cpu Icon
             cpuIcons[i].setBounds(0, 0, FRAME_WIDTH, FRAME_HEIGHT);                  // set bound so doesn't go outside frame
         }
         
-        // setting icon positions and layering them
+        // Setting icon positions and layering them
         cpuIcons[0].setPosition(25, 0);
         gamePanel.add(cpuIcons[0], Integer.valueOf(2));
         
@@ -126,6 +131,14 @@ public class GameUI extends JFrame {
         cpuIcons[3].setPosition(1300, 0);
         gamePanel.add(cpuIcons[3], Integer.valueOf(2));
 
+
+        //Add window resize listener to update scaling
+        this.addComponentListener(new ComponentAdapter() {
+            public void componentResized(ComponentEvent e) {
+                updateAllImageScales();
+            }
+        });
+        
         //Start button logic -> Difficulty selection -> Start game
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -223,12 +236,26 @@ public class GameUI extends JFrame {
                 }
             }
         });
-
-
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(800, 500);
-        this.setVisible(true);
     }
+    
+    //Update Scale
+    private void updateAllImageScales() {
+        int width = getWidth();
+        int height = getHeight();
+        
+        //Update each image panel scale
+        floor.updateScale(width, height);
+        table.updateScale(width, height);
+        
+        for (ImagePanel icon : cpuIcons) {
+            if (icon != null) {
+                icon.updateScale(width, height);
+            }
+        }
+
+        updateUI();
+    }
+
     
     //Add game actions buttons
     private void addActionButtons() {
