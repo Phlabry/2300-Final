@@ -9,68 +9,86 @@ public class Player
 	private int money;
 	private Hand hand;
 	private boolean folded;
+    private boolean hasActed;
+    private boolean isHuman;
 	
 	private String HandValue;       
     private Card.Rank highCard;
 	
-	public Player(String name, int money) {
+	public Player(String name, int money, boolean isHuman) {
 		this.name = name;
 		this.money = money;
 		this.hand = new Hand();
 		this.folded = false;
+		this.hasActed = false;
+        this.isHuman = isHuman;
 	}
+	
+	public boolean isHuman() {
+        return isHuman;
+    }
 	
 	public void addCard(Card card) {
 		hand.addCard(card);
 	}
 	
+
+	public Hand getHand() {
+		return this.hand;
+	}
 	public void clearHand() {
 	    hand.clearHand();
 	}
 	
+	
 	public String getHandValue() {
         return HandValue;
     }
-
+	
     public void setHandValue(String HandValue) {
         this.HandValue = HandValue;
     }
 
+    
     public Card.Rank getHighCard() {
         return highCard;
     }
-
     public void setHighCard(Card.Rank highCard) {
         this.highCard = highCard;
     }
 	
+    
 	public String getName() {
 		return this.name;
 	}
-	
-	public int getMoney() {
-		return this.money;
-	}
-	
-    public boolean isFolded() {
-        return folded;
-    }
-	
-	public Hand getHand() {
-		return this.hand;
-	}
-	
 	public void setName(String name) {
 		this.name = name;
 	}
 	
+	
+	public int getMoney() {
+		return this.money;
+	}
 	public void setMoney(int money) {
 		this.money = money;
 	}
 	
-	public void setFolded(boolean status) {
+	
+    public boolean isFolded() {
+        return folded;
+    }
+    public void setFolded(boolean status) {
         this.folded = status;
     }
+    
+    
+    public boolean hasActed() {
+        return hasActed;
+    }
+    public void setHasActed(boolean hasActed) {
+        this.hasActed = hasActed;
+    }
+    
     
     public boolean placeBet(BettingAction action, int amount, int highestBet, int baseBet) {
         if (folded) {

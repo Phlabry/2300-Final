@@ -7,81 +7,271 @@ public class PokerGame {
     private Deck deck;
     private Table table;
     private Betting betting;
+    private int numPlayers;
+    private Player currentPlayer;
     private int currentRound;
     private int leftoverRollover;
+    private int phase;
+    private List<Card> communityCards;
+
     
-    public PokerGame(List<Player> players, Scanner scanner) {
+    public PokerGame(List<Player> players) {
         this.deck = new Deck();
         this.table = new Table();
-        this.betting = new Betting(players, scanner);
+        this.betting = new Betting(players);
+        this.numPlayers = players.size();
+        this.currentPlayer = null;
         this.currentRound = 1;
-        
+        //0 = preflop, 1 = flop, 2 = turn, 3 = river, 4 = showdown
+        this.phase = 0;
+        this.communityCards = new ArrayList<>(); 
+
         for (Player player : players) {
             table.addPlayer(player);
         }
     }
     
-    public void startGame() {
-        //Starting the game loop
-    	while (true) {
-    		//Boolean endRound Variable to start and end the game round loop
-        	boolean endRound = false;
-        	//Starting the Game round loop
-            while(!endRound) {
-            	shouldEndGame();
-            	//Printing the Game round number
-	            System.out.println("\n--- Starting Round " + currentRound + " ---");
-	           
-	            //Setup before each round
-	            deck.resetDeck(); //Reset Deck
-	            deck.shuffle(); //Shuffle Deck
-	            resetStatus(); //Reset Folded Status
-	            setupBlinds(); //Setup blinds
-	            dealHoleCards(); //Deal hole Cards
-	            showHoleCards(); //Show Hole Cards
-	            
-	            
-	            //First Betting Round -> Deal 3 community cards
-	            betting.startBettingRound();
-	            
-	            //If there is only one player still in the game, then end this game round
-	            if (shouldEndGame()) {
-	            	endRound = true;
-	            	break;
-	            }
-	            for(int i=0; i<3; i++) {
-		            dealCommunityCard();
-	            }
-	            showHoleCards();
 
-	            
-	            //Second & Third Betting Rounds -> Each Round Deal 1 more Community Card
-	            for(int i=0; i<2; i++) {
-	            	betting.nextBettingRound();
-		            
-		            //If there is only one player, then end round
-		            if (shouldEndGame()) {
-		            	endRound = true;
-		            	break;
-		            }
-		            dealCommunityCard();
-		            showHoleCards();
-	            }
-	            
-	            
-	            //Evaluate Hand -> Distribute Pot(s) -> Next Game Round
-	            evaluateHands();
-	            distributePots(); 
-
-	            currentRound++;
+    public void advancePhase() {
+        switch (phase) {
+            case 0:
+                continueToFlop();
+                break;
+            case 1:
+                continueToTurn();
+                break;
+            case 2:
+                continueToRiver();
+                break;
+            case 3:
+                evaluateHandsAndDetermineWinner();
+                break;
+        }
+        if (phase < 3) {
+            List<Player> activePlayers = getActivePlayers();
+            for (Player player : activePlayers) {
+            	player.setHasActed(false);
             }
+            phase++;
+        } else {
+            phase = 0;
         }
     }
+
+    //start game which calls the starting methods
+    public void startGame() {
+        //Initialize deck, table, and reset everything
+        this.deck.resetDeck();
+        this.deck.shuffle();
+        resetActedStatus();   
+        resetFoldedStatus();
+
+        // Clear community cards at the start of a new game
+        this.communityCards.clear();
+        
+        System.out.println("\n--- Starting Round " + currentRound + " ---");
+
+        //Deal the blinds and deal hole cards and show hole cards to Human player
+        setupBlinds();
+        dealHoleCards();
+        showHoleCards();
+
+        //Set Current Player to Next player after players who did small/big blind
+        
+        currentPlayer = table.getPlayers().get((currentRound + 1) % numPlayers); 
+
+        //Start first betting round -> Next Player
+        betting.startBettingRound();
+    }
+
     
+    //Called by GUI after first betting round is complete
+    public void continueToFlop() {
+        for (int i = 0; i < 3; i++) {
+            Card card = deck.dealCard();
+            communityCards.add(card);
+        }
+        showCommunityCard();
+        showHoleCards();
+
+        //Start Second betting round -> Next Player
+        betting.nextBettingRound(); 
+        resetActedStatus();   
+        int smallBlindIndex = (currentRound - 1) % numPlayers;
+        findFirstActivePlayerStartingFrom(smallBlindIndex);
+    }
+
+    //Called after second betting round is complete
+    public void continueToTurn() {
+    	Card card = deck.dealCard();
+        communityCards.add(card);
+        showCommunityCard();
+        
+        showHoleCards();
+
+        //Start Third betting round -> Next Player
+        betting.nextBettingRound(); 
+        resetActedStatus();   
+        
+        int smallBlindIndex = (currentRound - 1) % numPlayers;
+        findFirstActivePlayerStartingFrom(smallBlindIndex);
+    }
+
+    //Called after third betting round is complete
+    public void continueToRiver() {
+    	Card card = deck.dealCard();
+        communityCards.add(card);
+        showCommunityCard();
+        
+        showHoleCards();
+
+        //Start Last betting round -> Next Player
+        betting.nextBettingRound(); 
+        resetActedStatus();   
+        int smallBlindIndex = (currentRound - 1) % numPlayers;
+        findFirstActivePlayerStartingFrom(smallBlindIndex);
+    } 
+    
+    //Called after Last Betting round is complete
+    public void evaluateHandsAndDetermineWinner() {
+        //No more betting rounds -> Evaluate and finish
+        evaluateHands();
+        distributePots();
+        
+        //Delay to see winner
+        try {
+            Thread.sleep(7000);
+        } catch (InterruptedException e) {
+            e.printStackTrace(); // or handle it some other way
+        }
+
+        
+        currentRound++;
+        System.out.println("Round " + (currentRound - 1) + " Over.\n");
+        startGame();
+    }
+
+    public boolean isBettingRoundComplete() {
+        return betting.isBettingRoundComplete();
+    }
+
+    //Get all players who are still active in the hand
+    public List<Player> getActivePlayers() {
+        List<Player> active = new ArrayList<>();
+        for (Player player : table.getPlayers()) {  // Assuming table.getPlayers() gives all players
+            if (!player.isFolded() && player.getMoney() > 0) {
+                active.add(player);
+            }
+        }
+        return active;
+    }
+    
+    private void findFirstActivePlayerStartingFrom(int startIndex) {
+        List<Player> allPlayers = table.getPlayers();
+        
+        // Loop through the players, starting at the specified index
+        int index = startIndex;
+        int loopCount = 0;
+        
+        while (loopCount < allPlayers.size()) {
+            Player candidate = allPlayers.get(index);
+            if (!candidate.isFolded() && candidate.getMoney() > 0) {
+                currentPlayer = candidate;
+                return;
+            }
+            index = (index + 1) % allPlayers.size();
+            loopCount++;
+        }
+        
+        // Fallback - just get any active player if we can't find one starting from the intended position
+        for (Player player : allPlayers) {
+            if (!player.isFolded() && player.getMoney() > 0) {
+                currentPlayer = player;
+                return;
+            }
+        }
+        
+        // If no active players at all, this is a serious issue
+        System.out.println("WARNING: No active players found!");
+    }
+    
+    //Advance turn to the next active player
+    public void advanceToNextPlayer() {
+    	List<Player> allPlayers = table.getPlayers();
+        List<Player> activePlayers = getActivePlayers();
+        
+        if (activePlayers.size() <= 1) {
+            // Only one player left -> End hand
+            endHand();
+            return;
+        }
+        
+        if (betting.isBettingRoundComplete()) { 
+            return;
+        }
+        
+        if (currentPlayer == null) {
+            currentPlayer = activePlayers.get(0);
+        } else {
+            // Find the current player's position in the ORIGINAL player list
+            int currentOriginalIndex = allPlayers.indexOf(currentPlayer);
+            
+            // Find the next active player in the ORIGINAL order
+            Player nextPlayer = null;
+            int index = (currentOriginalIndex + 1) % allPlayers.size();
+            
+            // Loop through the original player list until we find an active player
+            int loopCount = 0;
+            while (loopCount < allPlayers.size()) {
+                Player candidate = allPlayers.get(index);
+                if (!candidate.isFolded() && candidate.getMoney() > 0) {
+                    nextPlayer = candidate;
+                    break;
+                }
+                index = (index + 1) % allPlayers.size();
+                loopCount++;
+            }
+            
+            currentPlayer = nextPlayer != null ? nextPlayer : activePlayers.get(0);
+        }
+      
+        //Print who is acting
+        System.out.println(currentPlayer.getName() + "'s turn...");
+
+        if (!currentPlayer.isHuman()) {
+            try {
+                Thread.sleep(2500);  //Delay for realism
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+
+            //Simulate AI action here
+            String action = ((AutoPlayer) currentPlayer).decideAction();
+            gameAction(action.toLowerCase());
+        } else {
+            //For human, do NOT auto-advance. Wait for GUI or console input.
+            System.out.println("Waiting for game action...");
+            //Game loop should now pause until GUI calls gameAction(...) with user input
+        }
+    }
+
+    // End hand logic (example stub)
+    public void endHand() {
+        // Determine winner, award pot, etc.
+    	evaluateHands();
+        distributePots();
+        System.out.println("Hand is over. \n");
+        currentRound++;
+        startGame();
+    }
+    
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
+
     //Setup the blinds, forcing bets so players can't just fold every time
     private void setupBlinds() {
         List<Player> players = table.getPlayers();
-        int numPlayers = players.size();
 
         //Calculate positions of small blind and big blind based on the round number
         int smallBlindIndex = (currentRound - 1) % numPlayers;  //Small blind: (round - 1) % number of players
@@ -101,7 +291,7 @@ public class PokerGame {
 
         //Print the blinds for debugging purposes
         System.out.println(smallBlindPlayer.getName() + " posts small blind: $" + smallBlindAmount);
-        System.out.println(bigBlindPlayer.getName() + " posts big blind: $" + bigBlindAmount + "\n");
+        System.out.println(bigBlindPlayer.getName() + " posts big blind: $" + bigBlindAmount);
         
         betting.createInitialPot(smallBlindAmount, bigBlindAmount, leftoverRollover);
     }
@@ -127,21 +317,24 @@ public class PokerGame {
                 System.out.println(player.getName() + "'s hand:"); 
                 for (Card card : player.getHand().getCards()) {
                     System.out.println("  " + card); 
+                    
                 }
                 System.out.println(); 
             } else {
-                System.out.println(player.getName() + " has folded.");
+                System.out.println(player.getName() + " has folded.\n");
             }
         }
     }
 
-    // Deals a single community card to all players (adds it to each player's hand)
-    private void dealCommunityCard() {
-        Card communityCard = deck.dealCard();    // Draw a card from the deck
-        List<Player> players = table.getPlayers();
-        for (Player player : players) {
-            player.addCard(communityCard);       // Add the community card to the player's hand
+    //Deals a single community card to all players (adds it to each player's hand)
+    private void showCommunityCard() {
+        System.out.println("Community Cards:"); 
+
+        for (Card card : communityCards) {
+            System.out.println("  " + card); 
         }
+        System.out.println("\n"); 
+
     }
 
     // Evaluates each active (non-folded) player's hand and determines the winner
@@ -149,7 +342,11 @@ public class PokerGame {
         List<Player> players = table.getPlayers();
         for (Player player : players) {
             if (!player.isFolded()) {
-                HandStrength result = HandEvaluator.evaluateHandWithMax(player.getHand().getCards());
+            	List<Card> combined = new ArrayList<>();
+            	combined.addAll(player.getHand().getCards());  //only 2 cards
+            	combined.addAll(communityCards);         //5 shared cards
+
+                HandStrength result = HandEvaluator.evaluateHandWithMax(combined);
                 player.setHandValue(result.getHandValue());
                 player.setHighCard(result.getHighCard());
                 System.out.println(player.getName() + " evaluates hand: " + player.getHandValue() + " (High Card:" + player.getHighCard()+ ")");
@@ -165,7 +362,7 @@ public class PokerGame {
 
         for (Player player : players) {
             if (player.isFolded()) continue;
-
+            
             int currentHandValue = HandEvaluator.handValue(player.getHandValue());
             Card.Rank currentHighCard = player.getHighCard();
 
@@ -196,7 +393,7 @@ public class PokerGame {
 
         //Iterate over each pot and distribute to the winner
         for (Pot pot : pots) {
-            Set<Player> contenders = pot.getContenders();
+            Set<Player> contenders = pot.getEligiblePlayers();
             List<Player> winners = determineWinners(new ArrayList<>(contenders));
             int potAmount = pot.getAmount();
             int share = pot.getAmount() / winners.size();
@@ -226,13 +423,105 @@ public class PokerGame {
         betting.getPots().clear();
     }
     
-    //Resets the folded status of all players at the beginning of a new round
-    private void resetStatus() {
+    //Resets the folded status of all players
+    private void resetFoldedStatus() {
         List<Player> players = table.getPlayers();
         for (Player player : players) {
-            player.setFolded(false); // Mark player as active again
+            player.setFolded(false); //Mark player as active again
         }
     }
+    
+    //Resets the Acted status of all players
+    private void resetActedStatus() {
+        List<Player> players = table.getPlayers();
+        for (Player player : players) {
+            player.setHasActed(false); //Marks player as haven't acted yet
+        }
+    }
+    
+    //GameActions not including raise
+    public void gameAction(String action) {
+    	if (currentPlayer.hasActed()) {
+            return; // Skip the action if the player already acted.
+        }
+    	
+        System.out.println(currentPlayer.getName() + " chooses to " + action);
+
+        switch (action) {
+            case "call":
+                betting.handleCall(currentPlayer);
+                break;
+            case "check":
+                betting.handleCheck(currentPlayer);
+                break;
+            case "fold":
+                betting.handleFold(currentPlayer);
+                break;
+            case "allin":
+                betting.handleAllIn(currentPlayer);
+                betting.resetHasActedForOthers(currentPlayer);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown action: " + action);
+        }
+        
+        System.out.println(currentPlayer.getName() + " now has $" + currentPlayer.getMoney());
+        currentPlayer.setHasActed(true); //Mark player as having acted in this round.
+        
+        if (shouldEndGame()) {
+            endHand();
+        } else if (isBettingRoundComplete()) {
+            advancePhase(); // move to flop/turn/etc
+        }
+        
+        advanceToNextPlayer(); // only advance if round isn't done
+        
+    }
+
+    //GameAction including raise
+    public void gameActionRaising(String action, int raiseAmount) {
+    	if (currentPlayer.hasActed()) {
+            return; // Skip the action if the player already acted.
+        }
+        System.out.println(currentPlayer.getName() + " chooses to " + action + " $" + raiseAmount);
+
+        switch (action) {
+            case "raise":
+            	betting.handleRaise(currentPlayer, raiseAmount);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown action: " + action);
+        }
+        
+        System.out.println(currentPlayer.getName() + " now has $" + currentPlayer.getMoney());
+        
+        if(action.equals("call") || action.equals("check") || action.equals("fold")) {
+        	currentPlayer.setHasActed(true); //Mark player as having acted in this round.
+    	}
+        
+        if (shouldEndGame()) {
+            endHand();
+        } else if (isBettingRoundComplete()) {
+            advancePhase(); // move to flop/turn/etc
+        } else {
+            advanceToNextPlayer(); // only advance if round isn't done
+        }
+    }
+    
+    public List<Card> getCommunityCards() {
+        return communityCards; // Assuming you have a field named communityCards
+    }
+    
+    
+    public List<Player> getPlayers() {
+        return table.getPlayers();
+    }
+    
+    
+    public boolean isShowdown() {
+        return phase == 4; // Assuming you have an enum GamePhase with SHOWDOWN
+    }
+    
     
     //Checks if only one player remains in the round (all others have folded)
     private boolean shouldEndGame() {
@@ -240,7 +529,7 @@ public class PokerGame {
         List<Player> players = table.getPlayers();
 
         for (Player player : players) {
-            if (!player.isFolded() && (player.getMoney() <= 0)) {
+            if (!player.isFolded() && (player.getMoney() > 0)) {
                 activePlayers++;
             }
         }
